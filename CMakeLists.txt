@@ -24,6 +24,7 @@ add_executable (leoback backend/src/main.cpp)
 set_target_properties(leoback PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
+    LINKER_LANGUAGE CXX
 )
 
 set(Boost_USE_STATIC_LIBS ON)
@@ -37,21 +38,23 @@ find_package(Boost COMPONENTS program_options REQUIRED)
 find_package(Threads)
 find_package(RapidJSON)
 
-target_include_directories(leoback PUBLIC
-${CMAKE_SOURCE_DIR}/backend/lib/)
+#target_include_directories(leoback PUBLIC
+#${CMAKE_SOURCE_DIR}/backend/lib/)
 
+include_directories(${CMAKE_SOURCE_DIR}/backend/lib/)
 include_directories(${json_SOURCE_DIR}/include)
 
 target_link_libraries(leoback PRIVATE 
 Threads::Threads
 Boost::program_options
 nlohmann_json::nlohmann_json
-#libcommon
+libcore
+libcommon
 #libclient
 #libws
 #liblogger
 #libgame
 )#
 
-add_subdirectory(backend)
+add_subdirectory(backend/lib)
 

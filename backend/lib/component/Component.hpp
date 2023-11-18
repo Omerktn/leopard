@@ -1,5 +1,10 @@
 #pragma once
 
+#include <common/Types.hpp>
+
+#include <core/io/AnyEvent.hpp>
+#include <core/io/Publisher.hpp>
+
 #include <cstdint>
 
 namespace leo
@@ -7,9 +12,12 @@ namespace leo
 
 class Component
 {
+	using Publisher = core::io::Publisher<Component>;
+
 public:
-	Component(int32_t compId)
+	Component(CompId compId)
 		: id{compId}
+		, publisher{}
 	{}
 
 	virtual ~Component() = default;
@@ -18,8 +26,16 @@ public:
 	// virtual void getPublisher() = 0;
 	// virtual void getComponentDefs() = 0;
 
+	virtual void handleAnyInput(const core::io::AnyEvent&) = 0;
+
+	Publisher& getPublisher()
+	{
+		return publisher;
+	}
+
 private:
-	const int32_t id;
+	const CompId id;
+	Publisher publisher;
 };
 
 } // namespace leo
