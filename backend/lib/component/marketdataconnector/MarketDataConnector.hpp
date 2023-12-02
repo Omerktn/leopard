@@ -20,9 +20,27 @@ public:
 	//using OutputSchema = core::io::IoSchema<events::BboUpdate>;
 	//using Publisher = core::io::Publisher<OutputSchema>;
 
+	struct PublisherKind
+	{
+		static constexpr auto NUMBER_OF_PUBLISHERS = 2;
+
+		struct Bbo
+		{
+			static constexpr InputIndex INDEX = 0;
+			static constexpr auto NAME = "Bbo";
+			using EventType = events::BboUpdate;
+		};
+		struct SayHi
+		{
+			static constexpr InputIndex INDEX = 1;
+			static constexpr auto NAME = "SayHi";
+			using EventType = events::SayHi;
+		};
+	};
+
 public:
 	MarketDataConnector(CompId compId)
-		: Base{compId}
+		: Base{compId, PublisherKind::NUMBER_OF_PUBLISHERS}
 	{
 		bboUpdate.bbo.bid = Price{Price::FromDouble{}, 100.1};
 		bboUpdate.bbo.ask = Price{Price::FromDouble{}, 120.2};
@@ -42,12 +60,22 @@ public:
 		bboUpdate.bbo.bid += INCREMENT;
 		bboUpdate.bbo.ask += INCREMENT;
 
-		Base::getPublisher().publish(bboUpdate);
+		Base::getPublisher(PublisherKind::Bbo::INDEX).publish(bboUpdate);
 	}
 
-	virtual void handleAnyInput(const core::io::AnyEvent&) override
+	/*virtual void handleAnyInput([[maybe_unused]] InputIndex idx, const core::io::AnyEvent&) override
 	{
 		assert(!"Not implemented");
+	}*/
+
+	virtual void initPublishers() override
+	{
+		using namespace std::string_literals;
+
+		Base::getPublisher(PublisherKind::Bbo::INDEX)
+			.rename(PublisherKind::Bbo::NAME + " publisher"s);
+		Base::getPublisher(PublisherKind::SayHi::INDEX)
+			.rename(PublisherKind::SayHi::NAME + " publisher"s);
 	}
 
 private:

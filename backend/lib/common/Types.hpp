@@ -7,9 +7,10 @@ namespace leo
 {
 
 using CoreId = uint32_t;
-
 using CompId = int32_t;
 using ComponentName = FixedString<127>;
+using PublisherIndex = uint16_t;
+using InputIndex = uint16_t;
 
 using EventId = uint16_t;
 

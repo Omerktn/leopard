@@ -1,5 +1,8 @@
 #pragma once
 
+#include <type_traits>
+#include <variant>
+
 namespace leo
 {
 
@@ -42,6 +45,10 @@ struct composer_t<lambda_t, more_lambda_ts...> : lambda_t, composer_t<more_lambd
 	using super_t::operator();
 };
 
+template <typename>
+struct tag
+{};
+
 } // namespace detail
 
 template <typename... lambda_ts>
@@ -62,5 +69,13 @@ struct Overloaded : Ts...
 // explicit deduction guide (not needed as of C++20)
 //template <class... Ts>
 //overloaded(Ts...) -> Overloaded<Ts...>;
+
+template <typename T, typename V>
+struct getIndex;
+
+template <typename T, typename... Ts>
+struct getIndex<T, std::variant<Ts...>>
+	: std::integral_constant<size_t, std::variant<detail::tag<Ts>...>(detail::tag<T>()).index()>
+{};
 
 } // namespace leo
