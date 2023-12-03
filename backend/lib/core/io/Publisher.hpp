@@ -7,14 +7,17 @@
 #include <iostream>
 #include <memory>
 
+namespace leo
+{
+class Component;
+};
+
 namespace leo::core::io
 {
-// TODO forward reference it?
-template <typename ComponentT>
+
 class Publisher
 {
-	using CompPtrRef = std::reference_wrapper<std::unique_ptr<ComponentT>>;
-	using PublisherType = Publisher<ComponentT>;
+	using CompPtrRef = std::reference_wrapper<std::unique_ptr<Component>>;
 
 	struct Listener
 	{
@@ -32,47 +35,21 @@ class Publisher
 	};
 
 public:
-	Publisher(const std::string_view name)
-		: name{name}
-		, listeners{}
-	{}
+	Publisher(const std::string_view name);
 
-	/*Publisher(const PublisherType& other) {}
-	Publisher(PublisherType&& other)
-		: name{std::move(other.name)}
-		, listener{std::move(listener)}
-	{
-		this->name = ;
-		this->listeners = std::move(other)
-	}*/
-
-	Publisher(const PublisherType& other) = default;
+	/*Publisher(const PublisherType& other) = default;
 	Publisher(PublisherType&& other) = default;
 	PublisherType& operator=(const PublisherType&) = default;
-	PublisherType& operator=(PublisherType&&) = default;
+	PublisherType& operator=(PublisherType&&) = default;*/
 
 	~Publisher() = default;
 
-	void rename(const std::string_view newName)
-	{
-		name = newName;
-	}
+	void rename(const std::string_view newName);
 
 	void
-	addListener(CompId compId, std::unique_ptr<ComponentT>& component, InputIndex targetInputIdx)
-	{
-		listeners.emplace_back(compId, std::ref(component), targetInputIdx);
-	}
+	addListener(CompId compId, std::unique_ptr<Component>& component, InputIndex targetInputIdx);
 
-	void removeListener(CompId compId)
-	{
-		std::erase(std::remove_if(listeners.begin(),
-								  listeners.end(),
-								  [compId](const Listener& listener) {
-									  return listener.componentId == compId;
-								  }),
-				   listeners.end());
-	}
+	void removeListener(CompId compId);
 
 	template <typename Event>
 	void publish(Event&& event)
@@ -80,16 +57,36 @@ public:
 		std::cout << "Publisher(" << name << ")::publish Event: " << event.NAME << std::endl;
 
 		const auto eventVariant = AnyEvent{std::forward<Event>(event)};
-
-		for (auto& listener : listeners)
-		{
-			listener.component.get().get()->handleAnyInput(listener.targetIdx, eventVariant);
-		}
+		publishImpl(eventVariant);
 	}
+
+private:
+	void publishImpl(const AnyEvent& eventVariant);
 
 private:
 	std::string name;
 	std::vector<Listener> listeners;
+};
+
+class PublisherSchema
+{
+public:
+	struct Slot
+	{
+		const std::type_info& eventTypeInfo;
+		std::string name;
+		std::string eventName;
+	};
+
+public:
+	template <class... Slots>
+	PublisherSchema(Slots&&... slotElements)
+		: slots{slotElements...}
+	{
+		static_assert(std::conjunction_v<std::is_same<Slot, Slots>...>);
+	}
+
+	std::vector<Slot> slots{};
 };
 
 } // namespace leo::core::io

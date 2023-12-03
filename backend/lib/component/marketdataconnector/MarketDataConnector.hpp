@@ -3,7 +3,6 @@
 #include <common/Types.hpp>
 #include <component/Component.hpp>
 #include <core/events/BboUpdate.hpp>
-#include <core/io/IoSchema.hpp>
 
 #include <cassert>
 #include <cstdint>
@@ -40,10 +39,12 @@ public:
 
 public:
 	MarketDataConnector(CompId compId)
-		: Base{compId, PublisherKind::NUMBER_OF_PUBLISHERS}
+		: Base{compId, PublisherKind::NUMBER_OF_PUBLISHERS, {}}
 	{
 		bboUpdate.bbo.bid = Price{Price::FromDouble{}, 100.1};
 		bboUpdate.bbo.ask = Price{Price::FromDouble{}, 120.2};
+		bboUpdate.bbo.bidQty = Quantity(Quantity::FromDouble{}, 75.25);
+		bboUpdate.bbo.askQty = Quantity(Quantity::FromDouble{}, 133.0);
 	}
 
 	~MarketDataConnector()
@@ -53,13 +54,11 @@ public:
 
 	virtual void evaluate() override
 	{
-		std::cout << "MDC::evaluate() >>> Publishing BBO( " << bboUpdate.bbo.bid.getAsDouble()
-				  << " / " << bboUpdate.bbo.ask.getAsDouble() << " )\n";
-
 		static constexpr auto INCREMENT = Price{Price::FromDouble{}, 0.5};
 		bboUpdate.bbo.bid += INCREMENT;
 		bboUpdate.bbo.ask += INCREMENT;
 
+		std::cout << "\nMDC::evaluate() >>> Publishing: " << bboUpdate.bbo << "\n";
 		Base::getPublisher(PublisherKind::Bbo::INDEX).publish(bboUpdate);
 	}
 

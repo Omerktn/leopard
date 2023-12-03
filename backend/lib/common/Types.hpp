@@ -3,6 +3,8 @@
 #include <common/FixedDecimal.hpp>
 #include <common/FixedString.hpp>
 
+#include <ostream>
+
 namespace leo
 {
 
@@ -23,6 +25,8 @@ struct BboPrice
 {
 	Price bid{};
 	Price ask{};
+
+	friend std::ostream& operator<<(std::ostream& os, const BboPrice& obj);
 };
 
 struct Bbo
@@ -36,6 +40,8 @@ struct Bbo
 	{
 		return BboPrice{.bid = bid, .ask = ask};
 	}
+
+	friend std::ostream& operator<<(std::ostream& os, const Bbo& obj);
 };
 
 } // namespace leo

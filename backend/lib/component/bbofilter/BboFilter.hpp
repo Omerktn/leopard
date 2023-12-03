@@ -6,7 +6,6 @@
 #include <common/Variant.hpp>
 #include <component/Component.hpp>
 #include <core/io/AnyEvent.hpp>
-#include <core/io/IoSchema.hpp>
 
 #include <cassert>
 #include <cstdint>
@@ -23,11 +22,17 @@ public:
 	BboFilter(CompId compId)
 		: Base{compId,
 			   0,
-			   Base::InputDefinition(Base::InputDefinition::Input{
-				   .eventTypeInfo = typeid(events::BboUpdate),
-				   .name = "BBO-Input",
-				   .eventName = events::BboUpdate::NAME,
-				   .callback = core::io::delegateHandler<&BboFilter::handleBboUpdate>(*this)})}
+			   core::io::ReceiverDefinition(
+				   core::io::ReceiverDefinition::Slot{
+					   .eventTypeInfo = typeid(events::BboUpdate),
+					   .name = "BBO-Input",
+					   .eventName = events::BboUpdate::NAME,
+					   .callback = core::io::delegateHandler<&BboFilter::handleBboUpdate>(*this)},
+				   core::io::ReceiverDefinition::Slot{
+					   .eventTypeInfo = typeid(events::SayHi),
+					   .name = "SayHi-Input",
+					   .eventName = events::BboUpdate::NAME,
+					   .callback = core::io::delegateHandler<&BboFilter::handleSayHi>(*this)})}
 	{}
 
 	~BboFilter()
@@ -59,25 +64,17 @@ public:
 		};
 	};
 
-	/*virtual void handleAnyInput(InputIndex idx, const core::io::AnyEvent& anyEvent) override
-	{
-		switch (idx)
-		{
-		case InputKind::BboSource::INDEX:
-			dispatchToHandler<InputKind::BboSource>(anyEvent);
-			break;
-		case InputKind::HiSayer::INDEX:
-			dispatchToHandler<InputKind::HiSayer>(anyEvent);
-			break;
-		default:
-			throw std::runtime_error("Unexpected InputIndex: " + std::to_string(idx));
-		}
-	}*/
-
 private:
 	void handleBboUpdate(const core::io::AnyEvent& anyEvent)
 	{
-		std::cout << "Received event " << anyEvent.index() << "\n";
+		const auto& bboUpdate = std::get<events::BboUpdate>(anyEvent);
+		std::cout << "Received event: " << bboUpdate.bbo << "\n";
+	}
+
+	void handleSayHi(const core::io::AnyEvent& anyEvent)
+	{
+		const auto& sayHi = std::get<events::SayHi>(anyEvent);
+		std::cout << "Received event: " << sayHi.NAME << "\n";
 	}
 
 	/*template <typename InputType>
