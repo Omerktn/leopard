@@ -30,9 +30,6 @@ void Core::run(const bool& quit)
 	const auto bfId = 7002;
 	auto& bboFilter = components.emplace_back(std::make_unique<bbo_filter::BboFilter>(bfId));
 
-	mdc->initPublishers();
-	bboFilter->initPublishers();
-
 	mdc->getPublisher(mdc::MarketDataConnector::PublisherKind::Bbo::INDEX)
 		.addListener(bfId, bboFilter, bbo_filter::BboFilter::InputKind::BboSource::INDEX);
 

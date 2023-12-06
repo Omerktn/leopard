@@ -39,7 +39,10 @@ public:
 
 public:
 	MarketDataConnector(CompId compId)
-		: Base{compId, PublisherKind::NUMBER_OF_PUBLISHERS, {}}
+		: Base{compId,
+			   core::io::PublisherSchema(core::io::Publisher::create<events::BboUpdate>("Bbo-Out"),
+										 core::io::Publisher::create<events::SayHi>("SayHi-Out")),
+			   {}}
 	{
 		bboUpdate.bbo.bid = Price{Price::FromDouble{}, 100.1};
 		bboUpdate.bbo.ask = Price{Price::FromDouble{}, 120.2};
@@ -67,7 +70,7 @@ public:
 		assert(!"Not implemented");
 	}*/
 
-	virtual void initPublishers() override
+	/*virtual void initPublishers() override
 	{
 		using namespace std::string_literals;
 
@@ -75,7 +78,7 @@ public:
 			.rename(PublisherKind::Bbo::NAME + " publisher"s);
 		Base::getPublisher(PublisherKind::SayHi::INDEX)
 			.rename(PublisherKind::SayHi::NAME + " publisher"s);
-	}
+	}*/
 
 private:
 	events::BboUpdate bboUpdate{};

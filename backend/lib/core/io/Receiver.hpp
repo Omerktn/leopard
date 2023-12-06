@@ -8,7 +8,7 @@
 namespace leo::core::io
 {
 
-class ReceiverDefinition
+class ReceiverSchema
 {
 	using Callback = std::function<void(const core::io::AnyEvent&)>;
 
@@ -23,7 +23,7 @@ public:
 
 public:
 	template <class... Slots>
-	ReceiverDefinition(Slots&&... slotElements)
+	ReceiverSchema(Slots&&... slotElements)
 		: slots{slotElements...}
 	{
 		static_assert(std::conjunction_v<std::is_same<Slot, Slots>...>);

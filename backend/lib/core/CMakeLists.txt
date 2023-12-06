@@ -5,4 +5,4 @@ add_library(libcore STATIC
     Core.hpp
 )
 
-target_link_libraries(libcore libcommon libcoreio)
+target_link_libraries(libcore libcommon libcoreio libcomponent)

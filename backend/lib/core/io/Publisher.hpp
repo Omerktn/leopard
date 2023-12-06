@@ -35,14 +35,17 @@ class Publisher
 	};
 
 public:
-	Publisher(const std::string_view name);
-
-	/*Publisher(const PublisherType& other) = default;
-	Publisher(PublisherType&& other) = default;
-	PublisherType& operator=(const PublisherType&) = default;
-	PublisherType& operator=(PublisherType&&) = default;*/
+	Publisher(const std::string_view name,
+			  const std::string_view eventName,
+			  const std::type_info& eventTypeInfo);
 
 	~Publisher() = default;
+
+	template <typename EventType>
+	static Publisher create(const std::string_view name)
+	{
+		return Publisher{name, EventType::NAME, typeid(EventType)};
+	}
 
 	void rename(const std::string_view newName);
 
@@ -51,9 +54,17 @@ public:
 
 	void removeListener(CompId compId);
 
+	bool doesPublishEvent(const std::type_info& otherTypeInfo) const;
+
 	template <typename Event>
 	void publish(Event&& event)
 	{
+		if (typeid(Event) != eventTypeInfo)
+		{
+			throw std::runtime_error("Attempted to publish " + std::string{typeid(Event).name()} +
+									 " from a Publisher of " + std::string{eventTypeInfo.name()});
+		}
+
 		std::cout << "Publisher(" << name << ")::publish Event: " << event.NAME << std::endl;
 
 		const auto eventVariant = AnyEvent{std::forward<Event>(event)};
@@ -65,28 +76,21 @@ private:
 
 private:
 	std::string name;
+	std::string eventName;
+	const std::type_info& eventTypeInfo;
 	std::vector<Listener> listeners;
 };
 
-class PublisherSchema
+struct PublisherSchema
 {
-public:
-	struct Slot
+	template <class... Publishers>
+	PublisherSchema(Publishers&&... slotElements)
+		: publishers{slotElements...}
 	{
-		const std::type_info& eventTypeInfo;
-		std::string name;
-		std::string eventName;
-	};
-
-public:
-	template <class... Slots>
-	PublisherSchema(Slots&&... slotElements)
-		: slots{slotElements...}
-	{
-		static_assert(std::conjunction_v<std::is_same<Slot, Slots>...>);
+		static_assert(std::conjunction_v<std::is_same<Publisher, Publishers>...>);
 	}
 
-	std::vector<Slot> slots{};
+	std::vector<Publisher> publishers{};
 };
 
 } // namespace leo::core::io

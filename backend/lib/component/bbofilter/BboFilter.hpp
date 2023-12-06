@@ -21,14 +21,14 @@ class BboFilter : public Component
 public:
 	BboFilter(CompId compId)
 		: Base{compId,
-			   0,
-			   core::io::ReceiverDefinition(
-				   core::io::ReceiverDefinition::Slot{
+			   {}, // core::io::PublisherSchema(core::io::Publisher{"Unnamed publisher"})
+			   core::io::ReceiverSchema(
+				   core::io::ReceiverSchema::Slot{
 					   .eventTypeInfo = typeid(events::BboUpdate),
 					   .name = "BBO-Input",
 					   .eventName = events::BboUpdate::NAME,
 					   .callback = core::io::delegateHandler<&BboFilter::handleBboUpdate>(*this)},
-				   core::io::ReceiverDefinition::Slot{
+				   core::io::ReceiverSchema::Slot{
 					   .eventTypeInfo = typeid(events::SayHi),
 					   .name = "SayHi-Input",
 					   .eventName = events::BboUpdate::NAME,
@@ -106,7 +106,7 @@ private:
 		std::cout << "Received HiSayer! Name: " << event.NAME << '\n';
 	}*/
 
-	virtual void initPublishers() override
+	/*virtual void initPublishers() override
 	{
 		using namespace std::string_literals;
 
@@ -114,7 +114,7 @@ private:
 		//	.rename(InputKind::BboSource::NAME + " publisher"s);
 		//Base::getPublisher(InputKind::HiSayer::INDEX)
 		//	.rename(InputKind::HiSayer::NAME + " publisher"s);
-	}
+	}*/
 
 private:
 };

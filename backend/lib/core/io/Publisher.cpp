@@ -7,8 +7,12 @@
 namespace leo::core::io
 {
 
-Publisher::Publisher(const std::string_view name)
+Publisher::Publisher(const std::string_view name,
+					 const std::string_view eventName,
+					 const std::type_info& eventTypeInfo)
 	: name{name}
+	, eventName{eventName}
+	, eventTypeInfo{eventTypeInfo}
 	, listeners{}
 {}
 
@@ -32,6 +36,11 @@ void Publisher::removeListener(CompId compId)
 									   return listener.componentId == compId;
 								   }),
 					listeners.end());
+}
+
+bool Publisher::doesPublishEvent(const std::type_info& otherTypeInfo) const
+{
+	return eventTypeInfo == otherTypeInfo;
 }
 
 void Publisher::publishImpl(const AnyEvent& eventVariant)
