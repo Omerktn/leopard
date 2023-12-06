@@ -22,6 +22,8 @@ public:
 
 	virtual void evaluate() = 0;
 
+	CompId getId() const;
+
 	void handleAnyInput(InputIndex idx, const core::io::AnyEvent& anyEvent);
 
 	const core::io::ReceiverSchema& getReceiverSchema() const;

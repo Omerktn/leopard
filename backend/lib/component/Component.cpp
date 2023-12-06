@@ -29,6 +29,11 @@ void Component::handleAnyInput(InputIndex idx, const core::io::AnyEvent& anyEven
 	callback(anyEvent);
 }
 
+CompId Component::getId() const
+{
+	return id;
+}
+
 const core::io::ReceiverSchema& Component::getReceiverSchema() const
 {
 	return receiverSchema;

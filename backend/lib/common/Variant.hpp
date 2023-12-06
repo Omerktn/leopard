@@ -66,16 +66,23 @@ struct Overloaded : Ts...
 	using Ts::operator()...;
 };
 
-// explicit deduction guide (not needed as of C++20)
-//template <class... Ts>
-//overloaded(Ts...) -> Overloaded<Ts...>;
-
-template <typename T, typename V>
-struct getIndex;
-
-template <typename T, typename... Ts>
-struct getIndex<T, std::variant<Ts...>>
-	: std::integral_constant<size_t, std::variant<detail::tag<Ts>...>(detail::tag<T>()).index()>
-{};
+template <typename VariantType, typename T, std::size_t index = 0>
+constexpr std::size_t getVariantIndex()
+{
+	static_assert(std::variant_size_v<VariantType> > index, "Type not found in variant");
+	if constexpr (index == std::variant_size_v<VariantType>)
+	{
+		return index;
+	}
+	else if constexpr (std::is_same_v<std::variant_alternative_t<index, VariantType>,
+									  std::decay_t<T>>)
+	{
+		return index;
+	}
+	else
+	{
+		return getVariantIndex<VariantType, std::decay_t<T>, index + 1>();
+	}
+}
 
 } // namespace leo

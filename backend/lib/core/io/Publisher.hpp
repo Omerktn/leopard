@@ -65,7 +65,8 @@ public:
 									 " from a Publisher of " + std::string{eventTypeInfo.name()});
 		}
 
-		std::cout << "Publisher(" << name << ")::publish Event: " << event.NAME << std::endl;
+		std::cout << "Publisher(" << name << ")::publish Event: " << event.NAME
+				  << " id: " << getEventId<Event>() << std::endl;
 
 		const auto eventVariant = AnyEvent{std::forward<Event>(event)};
 		publishImpl(eventVariant);

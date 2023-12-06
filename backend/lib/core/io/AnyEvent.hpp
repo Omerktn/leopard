@@ -16,7 +16,7 @@ using AnyEvent = std::variant<events::BboUpdate, events::SayHi>;
 template <typename Event>
 constexpr EventId getEventId()
 {
-	return getIndex<AnyEvent, Event>::value;
+	return getVariantIndex<AnyEvent, Event>();
 }
 
 template <auto F, typename T>
