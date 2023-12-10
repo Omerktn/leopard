@@ -1,3 +1,5 @@
+add_subdirectory(concurrent)
+
 add_library(libcommon STATIC
     Chrono.hpp
     FixedDecimal.hpp

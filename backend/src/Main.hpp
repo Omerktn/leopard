@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core/Core.hpp>
+#include <logger/server/Server.hpp>
 
 #include <iostream>
 #include <list>
@@ -40,6 +41,19 @@ private:
 		std::vector<std::thread> threads{};
 		threads.reserve(cores.size());
 
+		std::thread loggerServerThread{[this]() { loggerServer.run(); }};
+
+		std::thread testLogClient{[this]() {
+			uint16_t counter = 0;
+			while (true)
+			{
+				loggerServer.getQueue().putOne(
+					std::string{"hello world val: " + std::to_string(counter)});
+				std::this_thread::sleep_for(std::chrono::microseconds(100));
+				++counter;
+			}
+		}};
+
 		std::cout << "Starting " << cores.size() << " cores.\n";
 
 		for (auto& core : cores)
@@ -51,6 +65,7 @@ private:
 		{
 			thread.join();
 		}
+		loggerServerThread.join();
 	}
 
 private:
@@ -58,6 +73,7 @@ private:
 	[[maybe_unused]] char** argv;
 
 	bool quit = false;
+	logger::Server loggerServer{};
 	std::list<core::Core> cores{};
 };
 
