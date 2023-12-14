@@ -44,13 +44,18 @@ private:
 		std::thread loggerServerThread{[this]() { loggerServer.run(); }};
 
 		std::thread testLogClient{[this]() {
-			uint16_t counter = 0;
+			uint16_t seqNum = 0;
 			while (true)
 			{
-				loggerServer.getQueue().putOne(
-					std::string{"hello world val: " + std::to_string(counter)});
-				std::this_thread::sleep_for(std::chrono::microseconds(100));
-				++counter;
+				loggerServer.getQueue().putAll(
+					logger::protocol::Header::create<log::ArbitraryEvent2>(seqNum),
+					log::ArbitraryEvent2{"Ben Omer ulan", 12});
+				++seqNum;
+				loggerServer.getQueue().putAll(
+					logger::protocol::Header::create<log::ArbitraryEvent2>(seqNum),
+					log::ArbitraryEvent2{"Ben de veli hehe", 19});
+				std::this_thread::sleep_for(std::chrono::microseconds(500'000));
+				++seqNum;
 			}
 		}};
 

@@ -9,7 +9,7 @@ namespace leo::concurrent
 {
 
 template <typename Element>
-class Queue
+class ElementQueue
 {
 	static_assert(std::is_nothrow_move_constructible_v<Element>);
 	static_assert(std::is_nothrow_move_assignable_v<Element>);

@@ -42,7 +42,7 @@ public:
 
 	virtual void evaluate() override
 	{
-		std::cout << "BboFilter::evaluate() Evaluating BboFilter!\n";
+		//std::cout << "BboFilter::evaluate() Evaluating BboFilter!\n";
 	}
 
 public:
@@ -50,7 +50,7 @@ private:
 	void handleBboUpdate(const core::io::AnyEvent& anyEvent)
 	{
 		const auto& bboUpdate = std::get<events::BboUpdate>(anyEvent);
-		std::cout << "Received event: " << bboUpdate.bbo << "\n";
+		//std::cout << "Received event: " << bboUpdate.bbo << "\n";
 	}
 
 	void handleSayHi(const core::io::AnyEvent& anyEvent)

@@ -47,7 +47,7 @@ public:
 		: FixedString(cArrayString, N)
 	{}
 
-	FixedString(const std::string_view& sv)
+	FixedString(const std::string_view sv)
 		: FixedString(sv.data(), sv.size())
 	{}
 
@@ -111,7 +111,7 @@ private:
 	std::array<char, ARRAY_SIZE> data;
 	std::size_t readableSize = 0;
 };
-static_assert(std::is_standard_layout_v<FixedString<16>>);
+static_assert(std::is_standard_layout_v<FixedString<15>>);
 
 template <std::size_t CAPACITY>
 std::ostream& operator<<(std::ostream& os, const FixedString<CAPACITY>& fixedString)

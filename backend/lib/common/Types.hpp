@@ -14,6 +14,7 @@ using ComponentName = FixedString<127>;
 using PublisherIndex = uint16_t;
 using InputIndex = uint16_t;
 
+using LoggerUserId = int16_t;
 using EventId = uint16_t;
 
 using Price = FixedDecimal<12>;

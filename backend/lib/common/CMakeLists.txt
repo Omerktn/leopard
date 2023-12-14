@@ -1,6 +1,7 @@
 add_subdirectory(concurrent)
 
 add_library(libcommon STATIC
+    Buffer.hpp
     Chrono.hpp
     FixedDecimal.hpp
     FixedString.hpp
