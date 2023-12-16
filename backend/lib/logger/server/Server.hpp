@@ -1,11 +1,13 @@
 #pragma once
 
+#include <common/Chrono.hpp>
 #include <common/concurrent/BufferQueue.hpp>
-#include <logger/user/FullMessage.hpp>
 
-#include <chrono>
-#include <iostream> // rm?
-#include <thread>
+#include <logger/server/Decoder.hpp>
+#include <logger/user/LogFields.hpp>
+#include <logger/user/Protocol.hpp>
+
+#include <ostream>
 
 namespace leo::logger
 {
@@ -13,61 +15,34 @@ namespace leo::logger
 class Server
 {
 public:
-	Server() {}
+	Server();
+	~Server();
 
-	void run()
+	void run();
+
+	concurrent::BufferQueue& getQueue();
+
+private:
+	friend Decoder::Impl;
+
+	template <typename Event>
+	void handleEvent(const protocol::Header& header, const Event& event)
 	{
-		using namespace std::chrono_literals;
-
-		std::cout << "Logger Server is starting" << std::endl;
-
-		while (true)
-		{
-			auto& buffer = queue.takeBuffer();
-
-			const auto hasAnyData = buffer.getReadableSize() > 0;
-
-			if (buffer.getReadableSize() > 0)
-			{
-				std::cout << "[SERVER] Received " << buffer.getReadableSize() << " bytes:\n";
-
-				const auto& header = buffer.get<logger::protocol::Header>();
-
-				std::cout << "[Seq = " << header.sequenceNumber << "][ EventId = " << header.eventId
-						  << "]\n";
-			}
-
-			/*if (count > 0)
-			{
-				std::cout << "[SERVER] Received " << count << " messages:\n";
-				for (auto it = begin; it != end; it++)
-				{
-					const auto& fullMsg = *it;
-					const auto* arbEv2 = std::get_if<log::ArbitraryEvent2>(&fullMsg.variant);
-					if (arbEv2)
-					{
-						std::cout << "[ " << fullMsg.userId << " ][ " << arbEv2->EVENT_NAME
-								  << " ][ " << arbEv2->msg.toStringView() << " ]\n";
-					}
-					//std::cout << "[MSG] = \"" << *it << "\"\n";
-				}
-				std::cout << std::flush;
-			}*/
-
-			if (!hasAnyData)
-			{
-				std::this_thread::sleep_for(10ms);
-			}
-		}
+		const auto serverEvent = typename Event::SERVER_SIDE_EVENT{event};
+		writeEventFields(serverEvent.EVENT_NAME,
+						 Nanoseconds{header.timestamp},
+						 serverEvent.getFields(),
+						 std::cout);
 	}
 
-	concurrent::BufferQueue& getQueue()
-	{
-		return queue;
-	}
+	void writeEventFields(const std::string_view eventName,
+						  Nanoseconds timestamp,
+						  const logger::Fields& fields,
+						  std::ostream& out);
 
 private:
 	concurrent::BufferQueue queue{1024};
+	Decoder decoder{*this};
 };
 
 }; // namespace leo::logger

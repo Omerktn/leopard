@@ -48,11 +48,11 @@ private:
 			while (true)
 			{
 				loggerServer.getQueue().putAll(
-					logger::protocol::Header::create<log::ArbitraryEvent2>(seqNum),
-					log::ArbitraryEvent2{"Ben Omer ulan", 12});
+					logger::protocol::Header::create<log::ArbitraryEvent1>(seqNum, Clock::now()),
+					log::ArbitraryEvent1{"Ben Omer ulan"});
 				++seqNum;
 				loggerServer.getQueue().putAll(
-					logger::protocol::Header::create<log::ArbitraryEvent2>(seqNum),
+					logger::protocol::Header::create<log::ArbitraryEvent2>(seqNum, Clock::now()),
 					log::ArbitraryEvent2{"Ben de veli hehe", 19});
 				std::this_thread::sleep_for(std::chrono::microseconds(500'000));
 				++seqNum;

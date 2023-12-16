@@ -50,6 +50,7 @@ Boost::program_options
 nlohmann_json::nlohmann_json
 libcore
 libcommon
+liblogger
 libconcurrent
 #libclient
 #libws

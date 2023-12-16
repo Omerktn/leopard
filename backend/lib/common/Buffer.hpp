@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstring>
 #include <memory>
 #include <type_traits>
 
@@ -77,9 +78,9 @@ public:
 	{
 		if (getReadableSize() < sizeof(T))
 		{
-			return false;
+			return nullptr;
 		}
-		return *reinterpret_cast<const T*>(getPointerToRead());
+		return reinterpret_cast<const T*>(getPointerToRead());
 	}
 
 	void consume(size_t consumedBytes)

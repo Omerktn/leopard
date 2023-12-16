@@ -79,6 +79,9 @@ struct IndexOf<T, TypeList<U, Types...>>
 	static constexpr std::size_t value = 1 + IndexOf<T, TypeList<Types...>>::value;
 };
 
+template <typename T, typename TypeList>
+constexpr bool IndexOfV = IndexOf<T, TypeList>::value;
+
 // Contains type
 
 template <typename T, typename TypeListT>
@@ -105,6 +108,27 @@ struct ContainsType<T, TypeList<U, Types...>>
 template <typename T, typename TypeList>
 constexpr bool ContainsTypeV = ContainsType<T, TypeList>::value;
 
+// Is Empty
+
+template <typename List>
+struct IsEmpty;
+
+template <>
+struct IsEmpty<TypeList<>>
+{
+	static constexpr bool value = true;
+};
+
+template <typename... Types>
+struct IsEmpty<TypeList<Types...>>
+{
+	static constexpr bool value = false;
+};
+
+// Helper alias for easier usage
+template <typename List>
+constexpr bool IsEmptyV = IsEmpty<List>::value;
+
 // TODO move to test
 namespace detail::test
 {
@@ -115,6 +139,9 @@ static_assert(std::is_same<TypeList<short, bool, int, int>, PushBackT<TestTypeLi
 
 static_assert(ContainsTypeV<bool, TypeList<short, bool, int>>);
 static_assert(!ContainsTypeV<size_t, TypeList<short, bool, int>>);
+
+static_assert(!IsEmptyV<TestTypeList>);
+static_assert(IsEmptyV<TypeList<>>);
 } // namespace detail::test
 
 } // namespace leo

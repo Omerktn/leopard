@@ -30,30 +30,9 @@ public:
 
 		return Seconds{time.tv_sec} + Nanoseconds{time.tv_nsec};
 	}
-
-	static Nanoseconds getEvalTime()
-	{
-		return getSingleton().lastEvalTime;
-	}
-
-	static void setEvalTime(Nanoseconds time)
-	{
-		getSingleton().lastEvalTime = time;
-	}
-
-private:
-	Clock() = default;
-
-	static Clock& getSingleton()
-	{
-		static Clock object;
-		return object;
-	}
-
-	Nanoseconds lastEvalTime = now();
 };
 
-class ScopeTimer
+/*class ScopeTimer
 {
 public:
 	ScopeTimer(const std::string_view msg = "Time")
@@ -70,7 +49,7 @@ public:
 private:
 	const std::string_view msg;
 	const Nanoseconds startTime;
-};
+};*/
 
 template <typename NewTimeT, typename GivenTimeT>
 NewTimeT durationCast(const GivenTimeT& time)
