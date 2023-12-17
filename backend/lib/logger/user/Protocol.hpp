@@ -1,9 +1,9 @@
 #pragma once
 
 #include <common/Chrono.hpp>
-#include <common/TypeList.hpp>
 #include <common/Types.hpp>
-#include <logger/TestEvents.hpp>
+
+#include <logger/user/LogEvents.hpp>
 
 #include <chrono>
 #include <type_traits>
@@ -12,17 +12,11 @@
 namespace leo::logger
 {
 
-using AllLogEvents = TypeList<log::ArbitraryEvent1, log::ArbitraryEvent2>;
-
 namespace protocol
 {
 
 using SequenceNumber = uint16_t;
 using EventId = uint16_t;
-
-// Disable char data[] warning
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wc99-extensions"
 
 struct Header
 {
@@ -44,11 +38,8 @@ public:
 	SequenceNumber sequenceNumber;
 	EventId eventId;
 	std::chrono::nanoseconds::rep timestamp;
-	char data[];
 } __attribute__((packed));
 static_assert(std::is_standard_layout_v<Header>);
-
-#pragma clang diagnostic pop
 
 } // namespace protocol
 
