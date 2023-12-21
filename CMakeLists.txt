@@ -4,7 +4,7 @@ project(leopard VERSION 0.1.0)
 
 set (CMAKE_CXX_STANDARD 20)
 set (CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -std=c++20")
-set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g -fsanitize=address -fno-omit-frame-pointer")
+set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g") #  -fno-omit-frame-pointer -fsanitize=address
 set (CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 find_program(CCACHE_FOUND ccache)

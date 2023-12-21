@@ -2,6 +2,7 @@
 
 #include <core/Core.hpp>
 #include <logger/server/Server.hpp>
+#include <logger/user/Logger.hpp>
 
 #include <iostream>
 #include <list>
@@ -43,19 +44,36 @@ private:
 
 		std::thread loggerServerThread{[this]() { loggerServer.run(); }};
 
-		std::thread testLogClient{[this]() {
+		logger::Logger theLogger(logger::LogLevel::DEBUG);
+
+		std::thread testLogClient{[this, &theLogger]() {
 			uint16_t seqNum = 0;
 			while (true)
 			{
-				loggerServer.getQueue().putAll(
+				/*loggerServer.getQueue().putAll(
 					logger::protocol::Header::create<log::ArbitraryEvent1>(seqNum, Clock::now()),
 					log::ArbitraryEvent1{"Ben Omer ulan"});
 				++seqNum;
 				loggerServer.getQueue().putAll(
 					logger::protocol::Header::create<log::ArbitraryEvent2>(seqNum, Clock::now()),
 					log::ArbitraryEvent2{"Ben de veli hehe", 19});
-				std::this_thread::sleep_for(std::chrono::microseconds(500'000));
+				++seqNum;*/
+				loggerServer.getQueue().putAll(
+					logger::protocol::Header::create<log::special::FormattedText>(seqNum,
+																				  Clock::now()),
+					log::special::FormattedText{
+						"Hoi {}, ik ben {} jaar oud. My friend {} called me.", 3},
+					log::special::FormatParameter::create<double>(),
+					double{12.7},
+					log::special::FormatParameter::create<uint16_t>(),
+					uint16_t{35},
+					log::special::FormatParameter::create<const char*>(),
+					(const char*)("Hasan Huseyin"));
 				++seqNum;
+
+				theLogger.logInfo("Merhaba televole!");
+
+				std::this_thread::sleep_for(std::chrono::microseconds(1'000'000));
 			}
 		}};
 

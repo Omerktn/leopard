@@ -1,5 +1,6 @@
 #include "Server.hpp"
 
+#include <common/Sugars.hpp>
 #include <common/Variant.hpp>
 
 #include <logger/server/Utils.hpp>
@@ -30,11 +31,16 @@ void Server::run()
 			std::cout << "[Server] Received " << buffer.getReadableSize() << " bytes:\n";
 		}
 
-		decoder.decode(buffer);
+		const auto result = decoder.decode(buffer);
+
+		if (result != Decoder::DecodeResult::SUCCESS)
+		{
+			std::cout << "[Server] Decode unsuccessful = " << castToUnderlying(result) << "\n";
+		}
 
 		if (!hasAnyData)
 		{
-			std::this_thread::sleep_for(10ms);
+			std::this_thread::sleep_for(1ms);
 		}
 	}
 }

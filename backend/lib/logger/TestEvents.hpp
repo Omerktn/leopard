@@ -24,6 +24,7 @@ struct ArbitraryEvent1
 	FixedString<63> msg;
 } __attribute__((packed));
 static_assert(std::is_standard_layout_v<ArbitraryEvent1>);
+static_assert(sizeof(ArbitraryEvent1) == 64 + 8);
 
 struct ArbitraryEvent2
 {

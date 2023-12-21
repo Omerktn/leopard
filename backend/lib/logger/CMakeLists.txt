@@ -1,4 +1,9 @@
 add_library(liblogger STATIC
+    formattedText/Decoder.hpp
+    formattedText/FormattedTextEvent.hpp
+    formattedText/Formatter.cpp
+    formattedText/Formatter.hpp
+
     server/Decoder.cpp
     server/Decoder.hpp
     server/Server.cpp
