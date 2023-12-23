@@ -44,10 +44,10 @@ private:
 
 		std::thread loggerServerThread{[this]() { loggerServer.run(); }};
 
-		logger::Logger theLogger(logger::LogLevel::DEBUG);
+		logger::Logger theLogger(loggerServer, logger::LogLevel::DEBUG);
 
 		std::thread testLogClient{[this, &theLogger]() {
-			uint16_t seqNum = 0;
+			//uint16_t seqNum = 0;
 			while (true)
 			{
 				/*loggerServer.getQueue().putAll(
@@ -57,7 +57,7 @@ private:
 				loggerServer.getQueue().putAll(
 					logger::protocol::Header::create<log::ArbitraryEvent2>(seqNum, Clock::now()),
 					log::ArbitraryEvent2{"Ben de veli hehe", 19});
-				++seqNum;*/
+				++seqNum;
 				loggerServer.getQueue().putAll(
 					logger::protocol::Header::create<log::special::FormattedText>(seqNum,
 																				  Clock::now()),
@@ -69,9 +69,10 @@ private:
 					uint16_t{35},
 					log::special::FormatParameter::create<const char*>(),
 					(const char*)("Hasan Huseyin"));
-				++seqNum;
+				++seqNum;*/
 
-				theLogger.logInfo("Merhaba televole!");
+				theLogger.logInfo("Merhaba {}, ik ben {} jaar oud.", "Efe", 32);
+				theLogger.flush();
 
 				std::this_thread::sleep_for(std::chrono::microseconds(1'000'000));
 			}

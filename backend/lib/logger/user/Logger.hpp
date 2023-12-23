@@ -1,7 +1,10 @@
 #pragma once
 
 #include <common/Sugars.hpp>
+#include <common/TypeTraits.hpp>
+#include <common/concurrent/adaptors/BufferedQueueAdaptor.hpp>
 
+#include <logger/server/Server.hpp>
 #include <logger/user/LogEvents.hpp>
 
 #include <string_view>
@@ -19,9 +22,15 @@ enum class LogLevel : uint8_t
 
 class Logger
 {
+	static constexpr auto BUFFER_CAPACTIY = 4096u;
+	static constexpr auto AUTO_FLUSH_THRESHOLD = 0.75f;
+
 public:
-	Logger(LogLevel logLevel = LogLevel::DEBUG)
-		: activeLevel{logLevel}
+	Logger(Server& server, LogLevel logLevel = LogLevel::DEBUG)
+		: server{server}
+		, bufferedQueueAdaptor{server.getQueue(), BUFFER_CAPACTIY}
+		, activeLevel{logLevel}
+		, seqNum{0}
 	{}
 
 	Logger(Logger&&) = delete;
@@ -32,7 +41,7 @@ public:
 	~Logger() = default;
 
 	template <typename Event>
-	void logEvent(const Event& event)
+	void logEvent([[maybe_unused]] const Event& event)
 	{
 		//
 	}
@@ -66,20 +75,62 @@ public:
 		return activeLevel;
 	}
 
+	void flush()
+	{
+		bufferedQueueAdaptor.flush();
+	}
+
 private:
-	template <size_t N, typename... Args>
-	void logTextMessage(LogLevel level, const char (&formatString)[N], Args&&... args)
+	template <typename... Args>
+	void logTextMessage(LogLevel level, const std::string_view formatString, Args&&... args)
 	{
 		if (castToUnderlying(activeLevel) < castToUnderlying(level))
 		{
 			return;
 		}
 
-		const std::string_view formatStringSv(formatString, N - 1);
+		static constexpr auto PARAM_COUNT = sizeof...(Args);
+		std::cout << "PARAM COUNT " << PARAM_COUNT << std::endl;
+
+		bufferedQueueAdaptor.putAll(
+			protocol::Header::create<log::special::FormattedText>(seqNum, Clock::now()),
+			log::special::FormattedText{formatString, PARAM_COUNT});
+
+		logParams(std::forward<Args>(args)...);
+
+		++seqNum;
+
+		// Auto-flush
+		if (bufferedQueueAdaptor.getFullnessRatio() >= AUTO_FLUSH_THRESHOLD)
+		{
+			bufferedQueueAdaptor.flush();
+		}
+	}
+
+	void logParams() {}
+
+	template <typename T, typename... Args>
+	void logParams(T&& value, Args&&... args)
+	{
+		if constexpr (std::is_bounded_array_v<std::remove_reference_t<T>>)
+		{
+			bufferedQueueAdaptor.putAll(log::special::FormatParameter::create<const char*>(),
+										static_cast<const char*>(value));
+		}
+		else
+		{
+			bufferedQueueAdaptor.putAll(log::special::FormatParameter::create<T>(),
+										std::forward<T>(value));
+		}
+
+		logParams(std::forward<Args>(args)...);
 	}
 
 private:
+	Server& server;
+	concurrent::BufferedQueueAdaptor<concurrent::BufferQueue> bufferedQueueAdaptor;
 	LogLevel activeLevel;
+	protocol::SequenceNumber seqNum;
 };
 
 } // namespace leo::logger

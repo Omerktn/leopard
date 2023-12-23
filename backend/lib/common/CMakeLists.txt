@@ -10,6 +10,7 @@ add_library(libcommon STATIC
     Sugars.hpp
     Types.cpp
     Types.hpp
+    TypeTraits.hpp
     Utility.hpp
     Variant.hpp
 )

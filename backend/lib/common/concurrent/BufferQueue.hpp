@@ -21,10 +21,16 @@ public:
 	{}
 
 	template <typename... T>
-	void putAll(T&&... objects)
+	bool putAll(T&&... objects)
 	{
 		std::lock_guard<std::mutex> lock(mutex);
-		putAllImpl(objects...);
+		return putAllImpl(objects...);
+	}
+
+	bool putFrom(const Buffer& anotherBuffer)
+	{
+		std::lock_guard<std::mutex> lock(mutex);
+		return getWritableBuffer().writeFrom(anotherBuffer);
 	}
 
 	Buffer& takeBuffer()
@@ -40,13 +46,17 @@ public:
 	}
 
 private:
-	void putAllImpl() {}
+	bool putAllImpl()
+	{
+		return true;
+	}
 
 	template <typename T, typename... OtherTypes>
-	void putAllImpl(T&& object, OtherTypes&&... rest)
+	bool putAllImpl(T&& object, OtherTypes&&... rest)
 	{
-		getWritableBuffer().write<T>(std::forward<T>(object));
-		putAllImpl(rest...);
+		const auto currenWritten = getWritableBuffer().write<T>(std::forward<T>(object));
+		const auto restWritten = putAllImpl(std::forward<T>(rest)...);
+		return currenWritten && restWritten;
 	}
 
 	Buffer& getWritableBuffer() noexcept

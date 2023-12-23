@@ -57,6 +57,19 @@ public:
 		return true;
 	}
 
+	bool writeFrom(const Buffer& other)
+	{
+		const auto otherSize = other.getReadableSize();
+		if (getWrittenSize() + otherSize > getCapacity())
+		{
+			return false;
+		}
+
+		std::memcpy(getPointerToWrite(), other.getPointerToRead(), otherSize);
+		size += otherSize;
+		return true;
+	}
+
 	template <typename T>
 	const T& get()
 	{

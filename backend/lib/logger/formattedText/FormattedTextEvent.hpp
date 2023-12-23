@@ -42,6 +42,8 @@ struct FormatParameter
 	template <typename T>
 	static FormatParameter create()
 	{
+		static_assert(ContainsTypeV<T, FormattedParameterTypes>,
+					  "Your parameter type is not in the list.");
 		return FormatParameter{IndexOfV<T, FormattedParameterTypes>};
 	}
 
