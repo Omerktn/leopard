@@ -24,6 +24,8 @@ public:
 	template <typename Event>
 	static Header create(SequenceNumber sequenceNumber, Nanoseconds timestamp)
 	{
+		static_assert(ContainsTypeV<Event, AllLogEvents>,
+					  "Your parameter type is not in the list.");
 		return Header{sequenceNumber, IndexOfV<Event, AllLogEvents>, timestamp};
 	}
 

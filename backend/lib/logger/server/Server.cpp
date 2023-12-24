@@ -3,6 +3,7 @@
 #include <common/Sugars.hpp>
 #include <common/Variant.hpp>
 
+#include <logger/formattedText/Formatter.hpp>
 #include <logger/server/Utils.hpp>
 
 #include <thread>
@@ -28,7 +29,7 @@ void Server::run()
 
 		if (hasAnyData)
 		{
-			std::cout << "[Server] Received " << buffer.getReadableSize() << " bytes:\n";
+			//std::cout << "[Server] Received " << buffer.getReadableSize() << " bytes:\n";
 		}
 
 		const auto result = decoder.decode(buffer);
@@ -75,6 +76,26 @@ void Server::writeEventFields(const std::string_view eventName,
 	}
 
 	out << '\n';
+}
+
+void Server::handleText(const protocol::Header& header,
+						LogLevel level,
+						const std::string_view formatStr,
+						std::vector<std::string>::const_iterator paramsBegin,
+						std::vector<std::string>::const_iterator paramsEnd)
+{
+	const auto finalText = formatted_text::formatString(formatStr, paramsBegin, paramsEnd);
+	writeText(level, Nanoseconds{header.timestamp}, finalText, std::cout);
+}
+
+void Server::writeText(LogLevel level,
+					   Nanoseconds timestamp,
+					   const std::string_view text,
+					   std::ostream& out)
+{
+	out << "[ ";
+	utils::serializeTime(out, timestamp);
+	out << " ][ " << level << " ][ " << text << " ]\n";
 }
 
 }; // namespace leo::logger

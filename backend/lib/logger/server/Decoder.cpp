@@ -1,7 +1,6 @@
 #include "Decoder.hpp"
 
 #include <logger/formattedText/Decoder.hpp>
-#include <logger/formattedText/Formatter.hpp>
 #include <logger/server/Server.hpp>
 #include <logger/user/Protocol.hpp>
 
@@ -73,7 +72,7 @@ private:
 			{
 				if constexpr (std::is_same_v<AnEvent, log::special::FormattedText>)
 				{
-					return decodeFormattedText(buffer);
+					return decodeFormattedText(buffer, header);
 				}
 				else
 				{
@@ -99,7 +98,7 @@ private:
 		return NOT_ENOUGH_DATA;
 	}
 
-	size_t decodeFormattedText(Buffer& buffer)
+	size_t decodeFormattedText(Buffer& buffer, const protocol::Header& topHeader)
 	{
 		const auto& fmtTextHeader = buffer.get<log::special::FormattedText>();
 
@@ -122,13 +121,11 @@ private:
 			}
 		}
 
-		std::cout << "[ INFO ] "
-				  << formatted_text::formatString(fmtTextHeader.formatString,
-												  formattedParams.cbegin(),
-												  formattedParams.cbegin() +
-													  fmtTextHeader.paramCount)
-				  << '\n';
-
+		server.handleText(topHeader,
+						  LogLevel::WARN,
+						  fmtTextHeader.formatString,
+						  formattedParams.cbegin(),
+						  formattedParams.cbegin() + fmtTextHeader.paramCount);
 		return 0;
 	}
 

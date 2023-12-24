@@ -3,6 +3,7 @@
 #include <common/Chrono.hpp>
 #include <common/concurrent/BufferQueue.hpp>
 
+#include <logger/LogLevel.hpp>
 #include <logger/server/Decoder.hpp>
 #include <logger/user/LogFields.hpp>
 #include <logger/user/Protocol.hpp>
@@ -39,6 +40,16 @@ private:
 						  Nanoseconds timestamp,
 						  const logger::Fields& fields,
 						  std::ostream& out);
+
+	void handleText(const protocol::Header& header,
+					LogLevel level,
+					const std::string_view formatStr,
+					std::vector<std::string>::const_iterator paramsBegin,
+					std::vector<std::string>::const_iterator paramsEnd);
+	void writeText(LogLevel level,
+				   Nanoseconds timestamp,
+				   const std::string_view text,
+				   std::ostream& out);
 
 private:
 	concurrent::BufferQueue queue{1024};

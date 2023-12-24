@@ -4,6 +4,7 @@
 #include <common/TypeTraits.hpp>
 #include <common/concurrent/adaptors/BufferedQueueAdaptor.hpp>
 
+#include <logger/LogLevel.hpp>
 #include <logger/server/Server.hpp>
 #include <logger/user/LogEvents.hpp>
 
@@ -11,14 +12,6 @@
 
 namespace leo::logger
 {
-
-enum class LogLevel : uint8_t
-{
-	ERROR = 0,
-	WARN = 1,
-	INFO = 2,
-	DEBUG = 3
-};
 
 class Logger
 {
@@ -41,9 +34,12 @@ public:
 	~Logger() = default;
 
 	template <typename Event>
-	void logEvent([[maybe_unused]] const Event& event)
+	void logEvent(const Event& event)
 	{
-		//
+		bufferedQueueAdaptor.putAll(protocol::Header::create<Event>(seqNum, Clock::now()), event);
+		++seqNum;
+
+		doAutoFlush();
 	}
 
 	template <size_t N, typename... Args>
@@ -90,7 +86,6 @@ private:
 		}
 
 		static constexpr auto PARAM_COUNT = sizeof...(Args);
-		std::cout << "PARAM COUNT " << PARAM_COUNT << std::endl;
 
 		bufferedQueueAdaptor.putAll(
 			protocol::Header::create<log::special::FormattedText>(seqNum, Clock::now()),
@@ -100,11 +95,7 @@ private:
 
 		++seqNum;
 
-		// Auto-flush
-		if (bufferedQueueAdaptor.getFullnessRatio() >= AUTO_FLUSH_THRESHOLD)
-		{
-			bufferedQueueAdaptor.flush();
-		}
+		doAutoFlush();
 	}
 
 	void logParams() {}
@@ -124,6 +115,14 @@ private:
 		}
 
 		logParams(std::forward<Args>(args)...);
+	}
+
+	void doAutoFlush()
+	{
+		if (bufferedQueueAdaptor.getFullnessRatio() >= AUTO_FLUSH_THRESHOLD)
+		{
+			bufferedQueueAdaptor.flush();
+		}
 	}
 
 private:
