@@ -135,5 +135,6 @@ private:
 	size_t consumedSize;
 	size_t size;
 	char* buffer;
+	//std::vector<std::byte> buffer;
 };
 } // namespace leo

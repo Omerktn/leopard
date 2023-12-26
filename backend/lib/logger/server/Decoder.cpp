@@ -10,6 +10,11 @@
 namespace leo::logger
 {
 
+namespace
+{
+
+}
+
 class Decoder::Impl
 {
 	static constexpr auto EVENT_ID_NO_MATCH = std::numeric_limits<size_t>::max();
@@ -28,13 +33,12 @@ public:
 		while (buffer.getReadableSize() > 0)
 		{
 			const auto& header = buffer.get<protocol::Header>();
-			//server.handleHeader(header);
 
 			if (!isInSequence(header.sequenceNumber))
 			{
 				std::cout << "SeqNum violation " << seqNum << " --> " << header.sequenceNumber
 						  << '\n';
-				//return DecodeResult::SEQ_NUM_VIOLATION;
+				return DecodeResult::SEQ_NUM_VIOLATION;
 			}
 
 			const auto result = decodeEvent<AllLogEvents>(buffer, header);
@@ -122,7 +126,7 @@ private:
 		}
 
 		server.handleText(topHeader,
-						  LogLevel::WARN,
+						  static_cast<LogLevel>(fmtTextHeader.level),
 						  fmtTextHeader.formatString,
 						  formattedParams.cbegin(),
 						  formattedParams.cbegin() + fmtTextHeader.paramCount);

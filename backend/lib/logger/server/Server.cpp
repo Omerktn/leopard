@@ -95,7 +95,7 @@ void Server::writeText(LogLevel level,
 {
 	out << "[ ";
 	utils::serializeTime(out, timestamp);
-	out << " ][ " << level << " ][ " << text << " ]\n";
+	out << " ][ " << level << " ] " << text << " \n";
 }
 
 }; // namespace leo::logger

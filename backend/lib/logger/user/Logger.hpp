@@ -89,7 +89,7 @@ private:
 
 		bufferedQueueAdaptor.putAll(
 			protocol::Header::create<log::special::FormattedText>(seqNum, Clock::now()),
-			log::special::FormattedText{formatString, PARAM_COUNT});
+			log::special::FormattedText{formatString, level, PARAM_COUNT});
 
 		logParams(std::forward<Args>(args)...);
 

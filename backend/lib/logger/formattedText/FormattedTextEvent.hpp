@@ -1,6 +1,7 @@
 #pragma once
 
 #include <common/FixedString.hpp>
+#include <common/Sugars.hpp>
 #include <common/Types.hpp>
 #include <logger/user/LogFields.hpp>
 
@@ -27,12 +28,16 @@ using FormattedParameterVariant = CreateVariant<FormattedParameterTypes>;
 
 struct FormattedText
 {
-	explicit FormattedText(const std::string_view formatString, uint8_t paramCount)
+	explicit FormattedText(const std::string_view formatString,
+						   logger::LogLevel level,
+						   uint8_t paramCount)
 		: formatString{formatString}
+		, level{castToUnderlying(level)}
 		, paramCount{paramCount}
 	{}
 
-	const std::string_view formatString;
+	std::string_view formatString;
+	uint8_t level;
 	uint8_t paramCount;
 } __attribute__((packed));
 static_assert(std::is_standard_layout_v<FormattedText>);
