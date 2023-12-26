@@ -75,7 +75,7 @@ private:
 				theLogger.logEvent(log::ArbitraryEvent2{"Ben de veli hehe", 19});
 				theLogger.flush();
 
-				std::this_thread::sleep_for(std::chrono::microseconds(1'000'000));
+				//std::this_thread::sleep_for(std::chrono::microseconds(1));
 			}
 		}};
 

@@ -13,9 +13,9 @@ namespace leo::concurrent
 class BufferQueue
 {
 public:
-	explicit BufferQueue(size_t capacity)
-		: firstBuffer(capacity)
-		, secondBuffer(capacity)
+	explicit BufferQueue(size_t initialCapacity)
+		: firstBuffer(initialCapacity)
+		, secondBuffer(initialCapacity)
 		, mutex{}
 		, isFirstBufferWritable{true}
 	{}
@@ -37,12 +37,10 @@ public:
 	{
 		std::lock_guard<std::mutex> lock(mutex);
 
-		auto& writtenBuffer = getWritableBuffer();
+		swapBuffers();
+		getWritableBuffer().reset();
 
-		swapWritableBuffer();
-		getWritableBuffer().reset(); // New one should be clean
-
-		return writtenBuffer;
+		return getReadableBuffer();
 	}
 
 private:
@@ -54,9 +52,9 @@ private:
 	template <typename T, typename... OtherTypes>
 	bool putAllImpl(T&& object, OtherTypes&&... rest)
 	{
-		const auto currenWritten = getWritableBuffer().write<T>(std::forward<T>(object));
+		const auto currentWritten = getWritableBuffer().write<T>(std::forward<T>(object));
 		const auto restWritten = putAllImpl(std::forward<T>(rest)...);
-		return currenWritten && restWritten;
+		return currentWritten && restWritten;
 	}
 
 	Buffer& getWritableBuffer() noexcept
@@ -69,7 +67,7 @@ private:
 		return isFirstBufferWritable ? secondBuffer : firstBuffer;
 	}
 
-	void swapWritableBuffer() noexcept
+	void swapBuffers() noexcept
 	{
 		isFirstBufferWritable = !isFirstBufferWritable;
 	}

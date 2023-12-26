@@ -3,6 +3,7 @@
 #include <cstring>
 #include <memory>
 #include <type_traits>
+#include <vector>
 
 namespace leo
 {
@@ -10,35 +11,33 @@ namespace leo
 class Buffer
 {
 public:
-	explicit Buffer(size_t capacity)
-		: capacity{capacity}
+	explicit Buffer(size_t defaultSize)
+		: defaultSize{defaultSize}
 		, consumedSize{0}
-		, size{0}
-		, buffer{new char[capacity]}
+		, writtenSize{0}
+		, buffer(defaultSize, '\0')
 	{}
 
-	~Buffer()
+	~Buffer() {}
+
+	size_t getDefaultSize() const
 	{
-		delete[] buffer;
-	}
-	size_t getCapacity() const
-	{
-		return capacity;
+		return defaultSize;
 	}
 
 	size_t getWrittenSize() const
 	{
-		return size;
+		return writtenSize;
 	}
 
-	const char* getData() const
+	const uint8_t* getData() const
 	{
-		return std::launder(buffer);
+		return buffer.data();
 	}
 
 	size_t getReadableSize() const
 	{
-		return size - consumedSize;
+		return getWrittenSize() - consumedSize;
 	}
 
 	template <typename T>
@@ -47,26 +46,24 @@ public:
 		static_assert(std::is_standard_layout_v<std::decay_t<T>>);
 
 		static constexpr auto OBJECT_SIZE = sizeof(T);
-		if (getWrittenSize() + OBJECT_SIZE > getCapacity())
-		{
-			return false;
-		}
+		const auto newSize = getWrittenSize() + OBJECT_SIZE;
 
+		buffer.resize(newSize, '\0');
 		std::memcpy(getPointerToWrite(), &object, sizeof(T));
-		size += sizeof(T);
+
+		writtenSize = newSize;
 		return true;
 	}
 
 	bool writeFrom(const Buffer& other)
 	{
 		const auto otherSize = other.getReadableSize();
-		if (getWrittenSize() + otherSize > getCapacity())
-		{
-			return false;
-		}
+		const auto newSize = getWrittenSize() + otherSize;
 
+		buffer.resize(newSize, '\0');
 		std::memcpy(getPointerToWrite(), other.getPointerToRead(), otherSize);
-		size += otherSize;
+
+		writtenSize = newSize;
 		return true;
 	}
 
@@ -98,12 +95,12 @@ public:
 
 	void consume(size_t consumedBytes)
 	{
-		if (consumedSize + consumedBytes > size)
+		if (consumedSize + consumedBytes > getWrittenSize())
 		{
 			throw std::runtime_error(
 				"Attempted to consume too much. ConsumedSize=" + std::to_string(consumedSize) +
 				" ConsumedBytes=" + std::to_string(consumedBytes) +
-				" > Size=" + std::to_string(size));
+				" > WrittenSize=" + std::to_string(getWrittenSize()));
 		}
 
 		consumedSize += consumedBytes;
@@ -111,30 +108,30 @@ public:
 
 	void reset()
 	{
-		size = 0;
+		buffer.clear();
+		writtenSize = 0;
 		consumedSize = 0;
 	}
 
 private:
-	char* getData()
+	uint8_t* getData()
 	{
-		return std::launder(buffer);
+		return buffer.data();
 	}
 
-	char* getPointerToWrite()
+	uint8_t* getPointerToWrite()
 	{
-		return getData() + size;
+		return getData() + writtenSize;
 	}
 
-	const char* getPointerToRead() const
+	const uint8_t* getPointerToRead() const
 	{
 		return getData() + consumedSize;
 	}
 
-	size_t capacity;
+	const size_t defaultSize;
 	size_t consumedSize;
-	size_t size;
-	char* buffer;
-	//std::vector<std::byte> buffer;
+	size_t writtenSize;
+	std::vector<uint8_t> buffer;
 };
 } // namespace leo

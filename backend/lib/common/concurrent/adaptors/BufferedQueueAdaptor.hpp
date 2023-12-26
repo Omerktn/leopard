@@ -10,9 +10,9 @@ class BufferedQueueAdaptor
 {
 
 public:
-	BufferedQueueAdaptor(MainQueueType& mainQueue, size_t capacity)
+	BufferedQueueAdaptor(MainQueueType& mainQueue, size_t initialSize)
 		: mainQueue{mainQueue}
-		, buffer{capacity}
+		, buffer{initialSize}
 	{}
 
 	template <typename... T>
@@ -42,7 +42,7 @@ public:
 
 	float getFullnessRatio() const
 	{
-		return static_cast<float>(buffer.getWrittenSize()) / buffer.getCapacity();
+		return static_cast<float>(buffer.getWrittenSize()) / buffer.getDefaultSize();
 	}
 
 	const Buffer& getBuffer() const
