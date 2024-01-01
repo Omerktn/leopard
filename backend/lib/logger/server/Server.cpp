@@ -11,9 +11,48 @@
 namespace leo::logger
 {
 
+Server::User::User(UserId userId, const std::string& name)
+	: id{userId}
+	, name{name}
+	, queue{2048}
+{}
+
+Server::User::User(UserId userId)
+	: id{userId}
+	, name{std::nullopt}
+	, queue{2048}
+{}
+
 Server::Server() = default;
 
 Server::~Server() = default;
+
+Server::UserId Server::registerUser(const std::string& name)
+{
+	std::scoped_lock guard{userMutex};
+
+	const auto userId = nextUserId++;
+	users.emplace(std::piecewise_construct,
+				  std::forward_as_tuple(userId),
+				  std::forward_as_tuple(userId, name));
+	return userId;
+}
+
+void Server::unregisterUser(UserId userId)
+{
+	std::scoped_lock guard{userMutex};
+	users.erase(userId);
+}
+
+concurrent::BufferQueue& Server::getUserQueue(UserId userId)
+{
+	const auto it = users.find(userId);
+	if (it == users.end())
+	{
+		throw std::runtime_error("There is no user with id " + std::to_string(userId));
+	}
+	return it->second.queue;
+}
 
 void Server::run()
 {
@@ -23,32 +62,43 @@ void Server::run()
 
 	while (true)
 	{
-		auto& buffer = queue.takeBuffer();
+		[&]() {
+			std::scoped_lock guard{userMutex};
 
-		const auto hasAnyData = buffer.getReadableSize() > 0;
+			Nanoseconds currentTime = Clock::now();
 
-		if (hasAnyData)
-		{
-			//std::cout << "[Server] Received " << buffer.getReadableSize() << " bytes:\n";
-		}
+			for (auto& userEntry : users)
+			{
+				auto& logUser = userEntry.second;
 
-		const auto result = decoder.decode(buffer);
+				if (!logUser.hadDataLastTime &&
+					currentTime - logUser.lastTimeRead < MIN_WAIT_BEFORE_READ)
+				{
+					continue;
+				}
 
-		if (result != Decoder::DecodeResult::SUCCESS)
-		{
-			std::cout << "[Server] Decode unsuccessful = " << castToUnderlying(result) << "\n";
-		}
+				auto& buffer = logUser.queue.takeBuffer();
+				const auto hasData = buffer.getReadableSize() > 0;
 
-		if (!hasAnyData)
-		{
-			std::this_thread::sleep_for(1ms);
-		}
+				logUser.lastTimeRead = currentTime;
+				logUser.hadDataLastTime = hasData;
+
+				if (!hasData)
+				{
+					continue;
+				}
+
+				currentDecodedUser = &logUser;
+				const auto result = decoder.decode(buffer);
+
+				if (result != Decoder::DecodeResult::SUCCESS)
+				{
+					std::cout << "[Server] [" << logUser.name.value_or("Unnamed")
+							  << "] Decode unsuccessful = " << castToUnderlying(result) << "\n";
+				}
+			}
+		}();
 	}
-}
-
-concurrent::BufferQueue& Server::getQueue()
-{
-	return queue;
 }
 
 void Server::writeEventFields(const std::string_view eventName,
@@ -56,9 +106,12 @@ void Server::writeEventFields(const std::string_view eventName,
 							  const logger::Fields& fields,
 							  std::ostream& out)
 {
+	const auto userName =
+		currentDecodedUser ? currentDecodedUser->name.value_or("Unnamed") : "Unkown";
+
 	out << "[ ";
 	utils::serializeTime(out, timestamp);
-	out << " ][ " << eventName << " ]";
+	out << " ][ " << userName << " ][ " << eventName << " ]";
 
 	for (const auto& field : fields)
 	{
@@ -93,9 +146,12 @@ void Server::writeText(LogLevel level,
 					   const std::string_view text,
 					   std::ostream& out)
 {
+	const auto userName =
+		currentDecodedUser ? currentDecodedUser->name.value_or("Unnamed") : "Unkown";
+
 	out << "[ ";
 	utils::serializeTime(out, timestamp);
-	out << " ][ " << level << " ] " << text << " \n";
+	out << " ][ " << userName << " ][ " << level << " ] " << text << " \n";
 }
 
 }; // namespace leo::logger

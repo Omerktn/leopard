@@ -23,8 +23,9 @@ public:
 	};
 
 public:
-	MarketDataConnector(CompId compId)
+	MarketDataConnector(CompId compId, logger::Logger&& compLogger)
 		: Base{compId,
+			   std::move(compLogger),
 			   core::io::PublisherSchema(core::io::Publisher::create<events::BboUpdate>("Bbo-Out"),
 										 core::io::Publisher::create<events::SayHi>("SayHi-Out")),
 			   {}}
@@ -47,6 +48,8 @@ public:
 		bboUpdate.bbo.ask += INCREMENT;
 
 		//std::cout << "\nMDC::evaluate() >>> Publishing: " << bboUpdate.bbo << "\n";
+		logger.logInfo("Publishing bbo: ", bboUpdate.bbo.bid.getAsDouble());
+		logger.flush();
 		Base::getPublisher(PublisherKind::BBO).publish(bboUpdate);
 	}
 

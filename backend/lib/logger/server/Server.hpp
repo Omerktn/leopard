@@ -8,7 +8,10 @@
 #include <logger/user/LogFields.hpp>
 #include <logger/user/Protocol.hpp>
 
+#include <mutex>
+#include <optional>
 #include <ostream>
+#include <unordered_map>
 
 namespace leo::logger
 {
@@ -16,12 +19,34 @@ namespace leo::logger
 class Server
 {
 public:
+	using UserId = uint32_t;
+
+private:
+	struct User
+	{
+		explicit User(UserId userId, const std::string& name);
+		explicit User(UserId userId);
+
+		UserId id;
+		std::optional<std::string> name;
+		concurrent::BufferQueue queue;
+
+		Nanoseconds lastTimeRead = Nanoseconds{0};
+		bool hadDataLastTime = true;
+	};
+
+	static constexpr auto MIN_WAIT_BEFORE_READ = Milliseconds{1};
+
+public:
 	Server();
 	~Server();
 
 	void run();
 
-	concurrent::BufferQueue& getQueue();
+	UserId registerUser(const std::string& name);
+	void unregisterUser(UserId);
+
+	concurrent::BufferQueue& getUserQueue(UserId);
 
 private:
 	friend Decoder::Impl;
@@ -52,8 +77,12 @@ private:
 				   std::ostream& out);
 
 private:
-	concurrent::BufferQueue queue{1024};
+	std::mutex userMutex{};
+	std::unordered_map<UserId, User> users{};
 	Decoder decoder{*this};
+	User* currentDecodedUser{nullptr};
+
+	UserId nextUserId{1};
 };
 
 }; // namespace leo::logger

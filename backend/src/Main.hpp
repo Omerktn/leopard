@@ -27,7 +27,7 @@ public:
 		std::cout << "Program is starting...\n";
 
 		const auto coreId = 1001;
-		cores.emplace_back(coreId);
+		cores.emplace_back(coreId, "Core1", loggerServer);
 
 		runAllCores();
 
@@ -44,7 +44,7 @@ private:
 
 		std::thread loggerServerThread{[this]() { loggerServer.run(); }};
 
-		logger::Logger theLogger(loggerServer, logger::LogLevel::DEBUG);
+		logger::Logger theLogger(loggerServer, "testLog", logger::LogLevel::DEBUG);
 
 		std::thread testLogClient{[this, &theLogger]() {
 			//uint16_t seqNum = 0;
@@ -75,7 +75,7 @@ private:
 				theLogger.logEvent(log::ArbitraryEvent2{"Ben de veli hehe", 19});
 				theLogger.flush();
 
-				//std::this_thread::sleep_for(std::chrono::microseconds(1));
+				std::this_thread::sleep_for(std::chrono::milliseconds(250));
 			}
 		}};
 

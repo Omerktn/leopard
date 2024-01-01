@@ -4,9 +4,11 @@ namespace leo
 {
 
 Component::Component(CompId compId,
+					 logger::Logger&& compLogger,
 					 core::io::PublisherSchema&& publisherSchema,
 					 core::io::ReceiverSchema&& receiverSchema)
 	: id{compId}
+	, logger{std::move(compLogger)}
 	, publisherSchema{std::move(publisherSchema)}
 	, receiverSchema{std::move(receiverSchema)}
 {}

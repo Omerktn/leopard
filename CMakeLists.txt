@@ -59,4 +59,4 @@ libconcurrent
 )#
 
 add_subdirectory(backend/lib)
-
+add_subdirectory(backend/tools)

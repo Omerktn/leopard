@@ -5,6 +5,8 @@
 #include <core/io/Publisher.hpp>
 #include <core/io/Receiver.hpp>
 
+#include <logger/user/Logger.hpp>
+
 #include <cstdint>
 #include <type_traits>
 
@@ -15,6 +17,7 @@ class Component
 {
 public:
 	Component(CompId compId,
+			  logger::Logger&& compLogger,
 			  core::io::PublisherSchema&& publisherSchema,
 			  core::io::ReceiverSchema&& receiverSchema);
 
@@ -29,8 +32,11 @@ public:
 	const core::io::ReceiverSchema& getReceiverSchema() const;
 	core::io::Publisher& getPublisher(PublisherIndex idx);
 
-private:
+protected:
 	const CompId id;
+	logger::Logger logger;
+
+private:
 	core::io::PublisherSchema publisherSchema;
 	const core::io::ReceiverSchema receiverSchema;
 };

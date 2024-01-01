@@ -19,8 +19,9 @@ class BboFilter : public Component
 	using Base = Component;
 
 public:
-	BboFilter(CompId compId)
+	BboFilter(CompId compId, logger::Logger&& compLogger)
 		: Base{compId,
+			   std::move(compLogger),
 			   {},
 			   core::io::ReceiverSchema(
 				   core::io::ReceiverSchema::Slot{

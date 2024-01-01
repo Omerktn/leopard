@@ -18,15 +18,29 @@ class Logger
 	static constexpr auto BUFFER_CAPACTIY = 4096u;
 	static constexpr auto AUTO_FLUSH_THRESHOLD = 0.75f;
 
+	using BufferedQueue = concurrent::BufferedQueueAdaptor<concurrent::BufferQueue>;
+
 public:
-	Logger(Server& server, LogLevel logLevel = LogLevel::DEBUG)
+	Logger(Server& server, const std::string& name, LogLevel logLevel = LogLevel::DEBUG)
 		: server{server}
-		, bufferedQueueAdaptor{server.getQueue(), BUFFER_CAPACTIY}
+		, userId{0}
+		, bufferedQueue{nullptr}
 		, activeLevel{logLevel}
 		, seqNum{0}
+	{
+		userId = server.registerUser(name);
+		bufferedQueue =
+			std::make_unique<BufferedQueue>(server.getUserQueue(userId), BUFFER_CAPACTIY);
+	}
+
+	Logger(Logger&& other)
+		: server{other.server}
+		, userId{other.userId}
+		, bufferedQueue{std::move(other.bufferedQueue)}
+		, activeLevel{other.activeLevel}
+		, seqNum{other.seqNum}
 	{}
 
-	Logger(Logger&&) = delete;
 	Logger(const Logger&) = delete;
 	Logger& operator=(Logger&&) = delete;
 	Logger& operator=(const Logger&) = delete;
@@ -36,7 +50,7 @@ public:
 	template <typename Event>
 	void logEvent(const Event& event)
 	{
-		bufferedQueueAdaptor.putAll(protocol::Header::create<Event>(seqNum, Clock::now()), event);
+		bufferedQueue->putAll(protocol::Header::create<Event>(seqNum, Clock::now()), event);
 		++seqNum;
 
 		doAutoFlush();
@@ -73,7 +87,7 @@ public:
 
 	void flush()
 	{
-		bufferedQueueAdaptor.flush();
+		bufferedQueue->flush();
 	}
 
 private:
@@ -87,7 +101,7 @@ private:
 
 		static constexpr auto PARAM_COUNT = sizeof...(Args);
 
-		bufferedQueueAdaptor.putAll(
+		bufferedQueue->putAll(
 			protocol::Header::create<log::special::FormattedText>(seqNum, Clock::now()),
 			log::special::FormattedText{formatString, level, PARAM_COUNT});
 
@@ -105,13 +119,13 @@ private:
 	{
 		if constexpr (std::is_bounded_array_v<std::remove_reference_t<T>>)
 		{
-			bufferedQueueAdaptor.putAll(log::special::FormatParameter::create<const char*>(),
-										static_cast<const char*>(value));
+			bufferedQueue->putAll(log::special::FormatParameter::create<const char*>(),
+								  static_cast<const char*>(value));
 		}
 		else
 		{
-			bufferedQueueAdaptor.putAll(log::special::FormatParameter::create<T>(),
-										std::forward<T>(value));
+			bufferedQueue->putAll(log::special::FormatParameter::create<T>(),
+								  std::forward<T>(value));
 		}
 
 		logParams(std::forward<Args>(args)...);
@@ -119,15 +133,16 @@ private:
 
 	void doAutoFlush()
 	{
-		if (bufferedQueueAdaptor.getFullnessRatio() >= AUTO_FLUSH_THRESHOLD)
+		if (bufferedQueue->getFullnessRatio() >= AUTO_FLUSH_THRESHOLD)
 		{
-			bufferedQueueAdaptor.flush();
+			bufferedQueue->flush();
 		}
 	}
 
 private:
 	Server& server;
-	concurrent::BufferedQueueAdaptor<concurrent::BufferQueue> bufferedQueueAdaptor;
+	Server::UserId userId;
+	std::unique_ptr<BufferedQueue> bufferedQueue;
 	LogLevel activeLevel;
 	protocol::SequenceNumber seqNum;
 };
