@@ -1,5 +1,9 @@
 #pragma once
 
+#include <common/StringOperations.hpp>
+
+#include <logger/formattedText/FormattedTextEvent.hpp>
+
 #include <cmath>
 #include <concepts>
 #include <iomanip>
@@ -33,6 +37,14 @@ template <>
 void serialize<const char*>(std::string& out, const char* const& val)
 {
 	out = val;
+}
+
+// For everything else
+
+template <typename T>
+void serialize(std::string& out, const T& val)
+{
+	out = toString(val);
 }
 
 } // namespace leo::logger::formatted_text

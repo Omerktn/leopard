@@ -7,6 +7,7 @@ add_library(libcommon STATIC
     FixedString.hpp
     Functional.hpp
     Math.hpp
+    StringOperations.hpp
     Sugars.hpp
     Types.cpp
     Types.hpp

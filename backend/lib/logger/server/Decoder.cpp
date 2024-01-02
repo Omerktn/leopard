@@ -34,10 +34,10 @@ public:
 		{
 			const auto& header = buffer.get<protocol::Header>();
 
-			if (!isInSequence(header.sequenceNumber))
+			if (!server.checkAndSetSequenceNumber(header.sequenceNumber))
 			{
-				std::cout << "SeqNum violation " << seqNum << " --> " << header.sequenceNumber
-						  << '\n';
+				std::cout << "Sequence Number violation " << header.sequenceNumber << " --> "
+						  << header.sequenceNumber << '\n';
 				return DecodeResult::SEQ_NUM_VIOLATION;
 			}
 
@@ -53,7 +53,6 @@ public:
 				return DecodeResult::FORMATTED_TEXT_FAILED;
 			}
 
-			++seqNum;
 			buffer.consume(result);
 		}
 
@@ -133,11 +132,6 @@ private:
 		return 0;
 	}
 
-	bool isInSequence(protocol::SequenceNumber dataSeqNum) const
-	{
-		return seqNum == dataSeqNum;
-	}
-
 	template <typename ListOfTypes>
 	std::size_t decodeFormattedParam(Buffer& buffer, uint8_t typeId, std::string& out)
 	{
@@ -171,7 +165,6 @@ private:
 
 private:
 	Server& server;
-	protocol::SequenceNumber seqNum{0};
 	std::vector<std::string> formattedParams{};
 };
 

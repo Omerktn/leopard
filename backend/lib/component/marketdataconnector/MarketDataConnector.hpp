@@ -48,7 +48,7 @@ public:
 		bboUpdate.bbo.ask += INCREMENT;
 
 		//std::cout << "\nMDC::evaluate() >>> Publishing: " << bboUpdate.bbo << "\n";
-		logger.logInfo("Publishing bbo: ", bboUpdate.bbo.bid.getAsDouble());
+		logger.logInfo("Publishing bbo: {}", bboUpdate.bbo);
 		logger.flush();
 		Base::getPublisher(PublisherKind::BBO).publish(bboUpdate);
 	}

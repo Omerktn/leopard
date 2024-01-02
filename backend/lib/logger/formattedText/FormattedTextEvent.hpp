@@ -2,7 +2,10 @@
 
 #include <common/FixedString.hpp>
 #include <common/Sugars.hpp>
+#include <common/TypeList.hpp>
 #include <common/Types.hpp>
+
+#include <logger/LogLevel.hpp>
 #include <logger/user/LogFields.hpp>
 
 #include <type_traits>
@@ -22,7 +25,9 @@ using FormattedParameterTypes = TypeList<const char*,
 										 uint32_t,
 										 int32_t,
 										 uint64_t,
-										 int64_t>;
+										 int64_t,
+										 Bbo,
+										 BboPrice>;
 
 using FormattedParameterVariant = CreateVariant<FormattedParameterTypes>;
 
@@ -47,9 +52,11 @@ struct FormatParameter
 	template <typename T>
 	static FormatParameter create()
 	{
-		static_assert(ContainsTypeV<T, FormattedParameterTypes>,
+		using DecayedT = std::decay_t<T>;
+
+		static_assert(ContainsTypeV<DecayedT, FormattedParameterTypes>,
 					  "Your parameter type is not in the list.");
-		return FormatParameter{IndexOfV<T, FormattedParameterTypes>};
+		return FormatParameter{IndexOfV<DecayedT, FormattedParameterTypes>};
 	}
 
 private:

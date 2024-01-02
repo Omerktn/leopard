@@ -6,6 +6,7 @@
 #include <logger/formattedText/Formatter.hpp>
 #include <logger/server/Utils.hpp>
 
+#include <cassert>
 #include <thread>
 
 namespace leo::logger
@@ -101,6 +102,15 @@ void Server::run()
 	}
 }
 
+bool Server::checkAndSetSequenceNumber(protocol::SequenceNumber seqNum)
+{
+	assert(currentDecodedUser && "CurrentDecodedUser is not set.");
+
+	const auto result = currentDecodedUser->sequenceNumber == seqNum;
+	++currentDecodedUser->sequenceNumber;
+	return result;
+}
+
 void Server::writeEventFields(const std::string_view eventName,
 							  Nanoseconds timestamp,
 							  const logger::Fields& fields,
@@ -137,13 +147,17 @@ void Server::handleText(const protocol::Header& header,
 						std::vector<std::string>::const_iterator paramsBegin,
 						std::vector<std::string>::const_iterator paramsEnd)
 {
+	const auto numberOfParams = std::distance(paramsBegin, paramsEnd);
+	const auto formatValidated = utils::validateFormatString(formatStr, numberOfParams);
+
 	const auto finalText = formatted_text::formatString(formatStr, paramsBegin, paramsEnd);
-	writeText(level, Nanoseconds{header.timestamp}, finalText, std::cout);
+	writeText(level, Nanoseconds{header.timestamp}, finalText, formatValidated, std::cout);
 }
 
 void Server::writeText(LogLevel level,
 					   Nanoseconds timestamp,
 					   const std::string_view text,
+					   bool hasValidFormat,
 					   std::ostream& out)
 {
 	const auto userName =
@@ -151,7 +165,14 @@ void Server::writeText(LogLevel level,
 
 	out << "[ ";
 	utils::serializeTime(out, timestamp);
-	out << " ][ " << userName << " ][ " << level << " ] " << text << " \n";
+	out << " ][ " << userName << " ][ " << level << " ] ";
+
+	if (!hasValidFormat)
+	{
+		out << " *MALFORMED* | ";
+	}
+
+	out << text << " \n";
 }
 
 }; // namespace leo::logger

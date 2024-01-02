@@ -31,6 +31,7 @@ private:
 		std::optional<std::string> name;
 		concurrent::BufferQueue queue;
 
+		protocol::SequenceNumber sequenceNumber{0};
 		Nanoseconds lastTimeRead = Nanoseconds{0};
 		bool hadDataLastTime = true;
 	};
@@ -50,6 +51,8 @@ public:
 
 private:
 	friend Decoder::Impl;
+
+	bool checkAndSetSequenceNumber(protocol::SequenceNumber seqNum);
 
 	template <typename Event>
 	void handleEvent(const protocol::Header& header, const Event& event)
@@ -74,6 +77,7 @@ private:
 	void writeText(LogLevel level,
 				   Nanoseconds timestamp,
 				   const std::string_view text,
+				   bool hasValidFormat,
 				   std::ostream& out);
 
 private:
