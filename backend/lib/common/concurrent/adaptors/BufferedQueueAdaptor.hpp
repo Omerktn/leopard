@@ -34,7 +34,6 @@ public:
 		{
 			unwrittenFlushAttempt += 1;
 			unwrittenByteCount += size;
-			std::cout << "DIT NOT WRITE!" << std::endl;
 		}
 
 		buffer.reset();

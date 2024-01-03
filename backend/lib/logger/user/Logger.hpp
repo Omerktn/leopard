@@ -21,14 +21,17 @@ class Logger
 	using BufferedQueue = concurrent::BufferedQueueAdaptor<concurrent::BufferQueue>;
 
 public:
-	Logger(Server& server, const std::string& name, LogLevel logLevel = LogLevel::DEBUG)
+	Logger(Server& server,
+		   const std::string& name,
+		   bool isFreeLogger,
+		   LogLevel logLevel = LogLevel::DEBUG)
 		: server{server}
 		, userId{0}
 		, bufferedQueue{nullptr}
 		, activeLevel{logLevel}
 		, seqNum{0}
 	{
-		userId = server.registerUser(name);
+		userId = server.registerUser(name, isFreeLogger);
 		bufferedQueue =
 			std::make_unique<BufferedQueue>(server.getUserQueue(userId), BUFFER_CAPACTIY);
 	}

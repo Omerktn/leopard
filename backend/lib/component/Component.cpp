@@ -46,4 +46,9 @@ core::io::Publisher& Component::getPublisher(PublisherIndex idx)
 	return publisherSchema.publishers.at(idx);
 }
 
+logger::Logger& Component::getLogger()
+{
+	return logger;
+}
+
 } // namespace leo

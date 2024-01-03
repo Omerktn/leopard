@@ -12,15 +12,17 @@
 namespace leo::logger
 {
 
-Server::User::User(UserId userId, const std::string& name)
+Server::User::User(UserId userId, const std::string& name, bool isFreeLogger)
 	: id{userId}
 	, name{name}
+	, isFreeLogger{isFreeLogger}
 	, queue{2048}
 {}
 
-Server::User::User(UserId userId)
+Server::User::User(UserId userId, bool isFreeLogger)
 	: id{userId}
 	, name{std::nullopt}
+	, isFreeLogger{isFreeLogger}
 	, queue{2048}
 {}
 
@@ -28,14 +30,14 @@ Server::Server() = default;
 
 Server::~Server() = default;
 
-Server::UserId Server::registerUser(const std::string& name)
+Server::UserId Server::registerUser(const std::string& name, bool isFreeLogger)
 {
 	std::scoped_lock guard{userMutex};
 
 	const auto userId = nextUserId++;
 	users.emplace(std::piecewise_construct,
 				  std::forward_as_tuple(userId),
-				  std::forward_as_tuple(userId, name));
+				  std::forward_as_tuple(userId, name, isFreeLogger));
 	return userId;
 }
 
@@ -160,12 +162,20 @@ void Server::writeText(LogLevel level,
 					   bool hasValidFormat,
 					   std::ostream& out)
 {
+	const bool shouldWriteUserName = currentDecodedUser ? !currentDecodedUser->isFreeLogger : true;
 	const auto userName =
-		currentDecodedUser ? currentDecodedUser->name.value_or("Unnamed") : "Unkown";
+		currentDecodedUser ? currentDecodedUser->name.value_or("Unnamed") : "Unknown";
 
 	out << "[ ";
 	utils::serializeTime(out, timestamp);
-	out << " ][ " << userName << " ][ " << level << " ] ";
+	out << " ]";
+
+	if (shouldWriteUserName)
+	{
+		out << "[ " << userName << " ]";
+	}
+
+	out << "[ " << level << " ] ";
 
 	if (!hasValidFormat)
 	{

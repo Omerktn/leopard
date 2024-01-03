@@ -56,7 +56,7 @@ int main() // int argc, char* argv[]
 	logger::Server loggerServer{};
 	std::thread loggerServerThread{[&loggerServer]() { loggerServer.run(); }};
 
-	logger::Logger theLogger(loggerServer, "profiler", logger::LogLevel::DEBUG);
+	logger::Logger theLogger(loggerServer, "profiler", false, logger::LogLevel::DEBUG);
 
 	static constexpr auto SAMPLE_SIZE = 100'000;
 

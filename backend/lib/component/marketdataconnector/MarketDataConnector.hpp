@@ -4,6 +4,8 @@
 #include <component/Component.hpp>
 #include <core/events/BboUpdate.hpp>
 
+#include <logger/user/FreeLogger.hpp>
+
 #include <cassert>
 #include <cstdint>
 #include <iostream>
@@ -48,8 +50,10 @@ public:
 		bboUpdate.bbo.ask += INCREMENT;
 
 		//std::cout << "\nMDC::evaluate() >>> Publishing: " << bboUpdate.bbo << "\n";
-		logger.logInfo("Publishing bbo: {}", bboUpdate.bbo);
-		logger.flush();
+		logger.logInfo("Publishing: {}", bboUpdate.bbo);
+
+		LOG_INFO("Deneme error!! {}", 32);
+
 		Base::getPublisher(PublisherKind::BBO).publish(bboUpdate);
 	}
 

@@ -32,6 +32,8 @@ public:
 	const core::io::ReceiverSchema& getReceiverSchema() const;
 	core::io::Publisher& getPublisher(PublisherIndex idx);
 
+	logger::Logger& getLogger();
+
 protected:
 	const CompId id;
 	logger::Logger logger;

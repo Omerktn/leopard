@@ -11,6 +11,13 @@ add_library(liblogger STATIC
     server/Utils.cpp
     server/Utils.hpp
 
+    user/FreeLogger.cpp
+    user/FreeLogger.hpp
+    user/LogEvents.hpp
+    user/LogFields.hpp
+    user/Logger.hpp
+    user/Protocol.hpp
+
     LogLevel.cpp
     LogLevel.hpp
 )

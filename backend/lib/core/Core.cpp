@@ -28,11 +28,11 @@ void Core::run(const bool& quit)
 
 	const auto mdcId = 7001;
 	auto& mdc = components.emplace_back(std::make_unique<mdc::MarketDataConnector>(
-		mdcId, logger::Logger{loggerServer, "MDC", logger::LogLevel::DEBUG}));
+		mdcId, logger::Logger{loggerServer, "MDC", false, logger::LogLevel::DEBUG}));
 
 	const auto bfId = 7002;
 	auto& bboFilter = components.emplace_back(std::make_unique<bbo_filter::BboFilter>(
-		bfId, logger::Logger{loggerServer, "BBF", logger::LogLevel::DEBUG}));
+		bfId, logger::Logger{loggerServer, "BBF", false, logger::LogLevel::DEBUG}));
 
 	mdc->getPublisher(mdc::MarketDataConnector::PublisherKind::BBO).addListener(bfId, bboFilter, 0);
 
@@ -41,6 +41,11 @@ void Core::run(const bool& quit)
 		for (auto& component : components)
 		{
 			component->evaluate();
+		}
+
+		for (auto& component : components)
+		{
+			component->getLogger().flush();
 		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds{750});

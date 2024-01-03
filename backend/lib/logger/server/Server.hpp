@@ -24,11 +24,12 @@ public:
 private:
 	struct User
 	{
-		explicit User(UserId userId, const std::string& name);
-		explicit User(UserId userId);
+		explicit User(UserId userId, const std::string& name, bool isFreeLogger);
+		explicit User(UserId userId, bool isFreeLogger);
 
 		UserId id;
 		std::optional<std::string> name;
+		bool isFreeLogger;
 		concurrent::BufferQueue queue;
 
 		protocol::SequenceNumber sequenceNumber{0};
@@ -44,7 +45,7 @@ public:
 
 	void run();
 
-	UserId registerUser(const std::string& name);
+	UserId registerUser(const std::string& name, bool isFreeLogger);
 	void unregisterUser(UserId);
 
 	concurrent::BufferQueue& getUserQueue(UserId);
