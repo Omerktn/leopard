@@ -26,6 +26,38 @@ Server::User::User(UserId userId, bool isFreeLogger)
 	, queue{2048}
 {}
 
+void Server::LineContainer::append(Nanoseconds timestamp, std::string&& text)
+{
+	auto line = Line{timestamp, std::move(text)};
+	lines.insert(std::upper_bound(lines.begin(), lines.end(), line), std::move(line));
+}
+
+Server::LineContainer::ConstIterator Server::LineContainer::begin() const
+{
+	return lines.cbegin();
+}
+
+Server::LineContainer::ConstIterator Server::LineContainer::end() const
+{
+	return lines.cend();
+}
+
+bool Server::LineContainer::empty() const
+{
+	return lines.empty();
+}
+
+void Server::LineContainer::clear()
+{
+	lines.clear();
+
+	static constexpr auto MAX_DESIRED_CAPACITY = 32'768u;
+	if (lines.capacity() > MAX_DESIRED_CAPACITY)
+	{
+		lines.shrink_to_fit();
+	}
+}
+
 Server::Server() = default;
 
 Server::~Server() = default;
@@ -55,6 +87,22 @@ concurrent::BufferQueue& Server::getUserQueue(UserId userId)
 		throw std::runtime_error("There is no user with id " + std::to_string(userId));
 	}
 	return it->second.queue;
+}
+
+void Server::flushLinesIfTimeOut(Nanoseconds currentTime)
+{
+	if (lineContainer.empty() || lineContainer.begin()->timestamp + LINES_BUFFER_TIME > currentTime)
+	{
+		return;
+	}
+
+	for (const auto& line : lineContainer)
+	{
+		std::cout << line.text << '\n';
+	}
+	std::cout << std::flush;
+
+	lineContainer.clear();
 }
 
 void Server::run()
@@ -100,6 +148,8 @@ void Server::run()
 							  << "] Decode unsuccessful = " << castToUnderlying(result) << "\n";
 				}
 			}
+
+			flushLinesIfTimeOut(currentTime);
 		}();
 	}
 }
@@ -139,8 +189,6 @@ void Server::writeEventFields(const std::string_view eventName,
 
 		out << " ]";
 	}
-
-	out << '\n';
 }
 
 void Server::handleText(const protocol::Header& header,
@@ -152,8 +200,14 @@ void Server::handleText(const protocol::Header& header,
 	const auto numberOfParams = std::distance(paramsBegin, paramsEnd);
 	const auto formatValidated = utils::validateFormatString(formatStr, numberOfParams);
 
-	const auto finalText = formatted_text::formatString(formatStr, paramsBegin, paramsEnd);
-	writeText(level, Nanoseconds{header.timestamp}, finalText, formatValidated, std::cout);
+	const auto timestamp = Nanoseconds{header.timestamp};
+
+	const auto readyText = formatted_text::formatString(formatStr, paramsBegin, paramsEnd);
+
+	std::ostringstream oss;
+	writeText(level, timestamp, readyText, formatValidated, oss);
+
+	lineContainer.append(timestamp, oss.str());
 }
 
 void Server::writeText(LogLevel level,
@@ -182,7 +236,7 @@ void Server::writeText(LogLevel level,
 		out << " *MALFORMED* | ";
 	}
 
-	out << text << " \n";
+	out << text;
 }
 
 }; // namespace leo::logger

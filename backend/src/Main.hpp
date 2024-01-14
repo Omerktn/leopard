@@ -68,10 +68,9 @@ private:
 			localLogger.logInfo("Merhaba {}, ik ben {} jaar oud.", "Efe", 32);
 			localLogger.logEvent(log::ArbitraryEvent2{"Ben de veli hehe", 19});
 			localLogger.flush();
+			FLUSH_FREE_LOGGER();
 
 			std::this_thread::sleep_for(std::chrono::milliseconds(250));
-
-			FLUSH_FREE_LOGGER();
 		}
 	}
 

@@ -38,18 +38,33 @@ void Core::run(const bool& quit)
 
 	while (!quit)
 	{
+		const auto now = Clock::now();
+		const auto evalContext = EvaluationContext{.currentTime = now};
+
 		for (auto& component : components)
 		{
-			component->evaluate();
+			if (shouldEval(*component, now))
+			{
+				component->evaluate(evalContext);
+				component->lastEvaluationTime = now;
+			}
 		}
 
 		for (auto& component : components)
 		{
 			component->getLogger().flush();
 		}
-
-		std::this_thread::sleep_for(std::chrono::milliseconds{750});
 	}
+}
+
+bool Core::shouldEval(const Component& component, Nanoseconds currentTime)
+{
+	const auto period = component.getEvaluationPreference().period;
+	if (period == EvaluationPreference::AS_BUSY_AS_POSSIBLE)
+	{
+		return true;
+	}
+	return component.lastEvaluationTime + period < currentTime;
 }
 
 } // namespace leo::core

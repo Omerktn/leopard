@@ -9,9 +9,15 @@ Component::Component(CompId compId,
 					 core::io::ReceiverSchema&& receiverSchema)
 	: id{compId}
 	, logger{std::move(compLogger)}
+	, evalPreference{EvaluationPreference::AS_BUSY_AS_POSSIBLE}
 	, publisherSchema{std::move(publisherSchema)}
 	, receiverSchema{std::move(receiverSchema)}
 {}
+
+EvaluationPreference Component::getEvaluationPreference() const
+{
+	return evalPreference;
+}
 
 void Component::handleAnyInput(InputIndex idx, const core::io::AnyEvent& anyEvent)
 {

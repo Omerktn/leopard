@@ -24,6 +24,9 @@ public:
 	void run(const bool& quit);
 
 private:
+	static bool shouldEval(const Component& component, Nanoseconds currentTime);
+
+private:
 	const CoreId id;
 	std::string name;
 	logger::Server& loggerServer;

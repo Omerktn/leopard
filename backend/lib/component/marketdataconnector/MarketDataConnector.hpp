@@ -17,6 +17,8 @@ class MarketDataConnector : public Component
 {
 	using Base = Component;
 
+	static constexpr auto PUBLISH_INTERVAL = Milliseconds{750};
+
 public:
 	enum PublisherKind : PublisherIndex
 	{
@@ -36,6 +38,8 @@ public:
 		bboUpdate.bbo.ask = Price{Price::FromDouble{}, 120.2};
 		bboUpdate.bbo.bidQty = Quantity(Quantity::FromDouble{}, 75.25);
 		bboUpdate.bbo.askQty = Quantity(Quantity::FromDouble{}, 133.0);
+
+		this->evalPreference = EvaluationPreference{.period = Milliseconds{750}};
 	}
 
 	~MarketDataConnector()
@@ -43,8 +47,14 @@ public:
 		std::cout << "MDC::~MarketDataConnector()" << std::endl;
 	}
 
-	virtual void evaluate() override
+	virtual void evaluate(const EvaluationContext& evalContext) override
 	{
+		/*if (evalContext.currentTime < lastTimePublished + PUBLISH_INTERVAL)
+		{
+			return;
+		}*/
+		lastTimePublished = evalContext.currentTime;
+
 		static constexpr auto INCREMENT = Price{Price::FromDouble{}, 0.5};
 		bboUpdate.bbo.bid += INCREMENT;
 		bboUpdate.bbo.ask += INCREMENT;
@@ -59,6 +69,7 @@ public:
 
 private:
 	events::BboUpdate bboUpdate{};
+	Nanoseconds lastTimePublished{};
 };
 
 } // namespace leo::mdc

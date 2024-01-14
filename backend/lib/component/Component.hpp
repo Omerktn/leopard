@@ -1,5 +1,7 @@
 #pragma once
 
+#include <component/Evaluation.hpp>
+
 #include <common/Types.hpp>
 
 #include <core/io/Publisher.hpp>
@@ -23,7 +25,9 @@ public:
 
 	virtual ~Component() = default;
 
-	virtual void evaluate() = 0;
+	virtual void evaluate(const EvaluationContext&) = 0;
+
+	EvaluationPreference getEvaluationPreference() const;
 
 	CompId getId() const;
 
@@ -34,9 +38,13 @@ public:
 
 	logger::Logger& getLogger();
 
+public:
+	Nanoseconds lastEvaluationTime{0};
+
 protected:
 	const CompId id;
 	logger::Logger logger;
+	EvaluationPreference evalPreference;
 
 private:
 	core::io::PublisherSchema publisherSchema;

@@ -11,6 +11,7 @@
 #include <mutex>
 #include <optional>
 #include <ostream>
+#include <sstream>
 #include <unordered_map>
 
 namespace leo::logger
@@ -20,6 +21,8 @@ class Server
 {
 public:
 	using UserId = uint32_t;
+
+	static constexpr auto LINES_BUFFER_TIME = Milliseconds{300};
 
 private:
 	struct User
@@ -37,6 +40,38 @@ private:
 		bool hadDataLastTime = true;
 	};
 
+	class LineContainer
+	{
+		struct Line
+		{
+			Nanoseconds timestamp;
+			std::string text;
+
+			bool operator<(const Line& other) const
+			{
+				return this->timestamp < other.timestamp;
+			}
+		};
+
+	public:
+		using Lines = std::vector<Line>;
+		using ConstIterator = Lines::const_iterator;
+
+	public:
+		LineContainer() = default;
+
+		void append(Nanoseconds timestamp, std::string&& text);
+
+		ConstIterator begin() const;
+		ConstIterator end() const;
+
+		bool empty() const;
+		void clear();
+
+	private:
+		Lines lines{};
+	};
+
 	static constexpr auto MIN_WAIT_BEFORE_READ = Milliseconds{1};
 
 public:
@@ -50,6 +85,8 @@ public:
 
 	concurrent::BufferQueue& getUserQueue(UserId);
 
+	void flushLinesIfTimeOut(Nanoseconds currentTime);
+
 private:
 	friend Decoder::Impl;
 
@@ -59,10 +96,12 @@ private:
 	void handleEvent(const protocol::Header& header, const Event& event)
 	{
 		const auto serverEvent = typename Event::SERVER_SIDE_EVENT{event};
-		writeEventFields(serverEvent.EVENT_NAME,
-						 Nanoseconds{header.timestamp},
-						 serverEvent.getFields(),
-						 std::cout);
+
+		const auto timestamp = Nanoseconds{header.timestamp};
+
+		std::ostringstream oss;
+		writeEventFields(serverEvent.EVENT_NAME, timestamp, serverEvent.getFields(), oss);
+		lineContainer.append(timestamp, oss.str());
 	}
 
 	void writeEventFields(const std::string_view eventName,
@@ -86,6 +125,8 @@ private:
 	std::unordered_map<UserId, User> users{};
 	Decoder decoder{*this};
 	User* currentDecodedUser{nullptr};
+
+	LineContainer lineContainer{};
 
 	UserId nextUserId{1};
 };

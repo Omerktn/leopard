@@ -41,7 +41,7 @@ public:
 		std::cout << "BboFilter::~BboFilter()" << std::endl;
 	}
 
-	virtual void evaluate() override
+	virtual void evaluate(const EvaluationContext&) override
 	{
 		//std::cout << "BboFilter::evaluate() Evaluating BboFilter!\n";
 	}
