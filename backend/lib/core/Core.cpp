@@ -26,11 +26,11 @@ void Core::run(const bool& quit)
 {
 	std::cout << "Core " << id << " is running." << std::endl;
 
-	const auto mdcId = 7001;
+	const auto mdcId = CompId{7001};
 	auto& mdc = components.emplace_back(std::make_unique<mdc::MarketDataConnector>(
 		mdcId, logger::Logger{loggerServer, "MDC", false, logger::LogLevel::DEBUG}));
 
-	const auto bfId = 7002;
+	const auto bfId = CompId{7002};
 	auto& bboFilter = components.emplace_back(std::make_unique<bbo_filter::BboFilter>(
 		bfId, logger::Logger{loggerServer, "BBF", false, logger::LogLevel::DEBUG}));
 
@@ -60,10 +60,17 @@ void Core::run(const bool& quit)
 bool Core::shouldEval(const Component& component, Nanoseconds currentTime)
 {
 	const auto period = component.getEvaluationPreference().period;
+
 	if (period == EvaluationPreference::AS_BUSY_AS_POSSIBLE)
 	{
 		return true;
 	}
+
+	if (period == EvaluationPreference::NEVER)
+	{
+		return false;
+	}
+
 	return component.lastEvaluationTime + period < currentTime;
 }
 

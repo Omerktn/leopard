@@ -2,14 +2,15 @@
 
 #include <common/FixedDecimal.hpp>
 #include <common/FixedString.hpp>
+#include <common/StrongType.hpp>
 
 #include <ostream>
 
 namespace leo
 {
 
-using CoreId = uint32_t;
-using CompId = int32_t;
+using CoreId = StrongType<uint32_t>;
+using CompId = StrongType<int32_t>;
 using ComponentName = FixedString<127>;
 using PublisherIndex = uint16_t;
 using InputIndex = uint16_t;
