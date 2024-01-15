@@ -6,7 +6,9 @@
 namespace leo
 {
 
-template <std::integral Underlying>
+namespace detail
+{
+template <std::integral Underlying, class Tag>
 class StrongType
 {
 public:
@@ -27,7 +29,7 @@ public:
 	StrongType& operator=(const StrongType&) = default;
 	~StrongType() = default;
 
-	explicit operator StrongType() const
+	explicit operator Underlying() const
 	{
 		return underying;
 	}
@@ -60,12 +62,14 @@ public:
 private:
 	Underlying underying;
 };
-
-template <std::integral Underlying>
-std::ostream& operator<<(std::ostream& os, StrongType<Underlying> strongValue)
+template <std::integral Underlying, class Tag>
+std::ostream& operator<<(std::ostream& os, StrongType<Underlying, Tag> strongValue)
 {
 	os << strongValue.value();
 	return os;
 }
+} // namespace detail
+
+#define DEFINE_STRONG(NAME, UNDERLYING) using NAME = detail::StrongType<UNDERLYING, class Tag_NAME>;
 
 } // namespace leo

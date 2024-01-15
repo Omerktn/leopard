@@ -9,8 +9,10 @@
 namespace leo
 {
 
-using CoreId = StrongType<uint32_t>;
-using CompId = StrongType<int32_t>;
+//using CoreId = StrongType<uint32_t, class Tag_CoreId>;
+DEFINE_STRONG(CoreId, uint32_t);
+DEFINE_STRONG(CompId, int32_t);
+//using CompId = StrongType<int32_t, class Tag_CompId>;
 using ComponentName = FixedString<127>;
 using PublisherIndex = uint16_t;
 using InputIndex = uint16_t;
