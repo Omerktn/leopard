@@ -8,68 +8,113 @@ namespace leo
 
 namespace detail
 {
-template <std::integral Underlying, class Tag>
+
+template <typename Underlying, class Tag>
 class StrongType
 {
 public:
 	using UnderlyingType = Underlying;
 
 public:
-	explicit StrongType()
-		: underying{}
+	constexpr explicit StrongType()
+		: underlying{}
 	{}
 
-	explicit StrongType(Underlying val)
-		: underying{val}
+	template <typename... Args>
+	constexpr StrongType(Args&&... args)
+		: underlying{std::forward<Args>(args)...}
 	{}
 
-	StrongType(StrongType&&) = default;
+	constexpr explicit StrongType(const Underlying& val)
+		: underlying{val}
+	{}
+
+	constexpr explicit StrongType(Underlying&& val)
+		: underlying{std::move(val)}
+	{}
+
 	StrongType(const StrongType&) = default;
 	StrongType& operator=(StrongType&&) = default;
 	StrongType& operator=(const StrongType&) = default;
 	~StrongType() = default;
 
-	explicit operator Underlying() const
+	constexpr explicit operator Underlying() const
 	{
-		return underying;
+		return underlying;
 	}
 
-	Underlying& value()
+	constexpr Underlying& value()
 	{
-		return underying;
+		return underlying;
 	}
 
-	Underlying value() const
+	constexpr const Underlying& value() const
 	{
-		return underying;
-	}
-
-	bool operator==(StrongType other) const
-	{
-		return this->value() == other.value();
-	}
-
-	bool operator<(StrongType other) const
-	{
-		return this->value() < other.value();
-	}
-
-	bool operator>(StrongType other) const
-	{
-		return this->value() > other.value();
+		return underlying;
 	}
 
 private:
-	Underlying underying;
+	Underlying underlying;
 };
+
 template <std::integral Underlying, class Tag>
 std::ostream& operator<<(std::ostream& os, StrongType<Underlying, Tag> strongValue)
 {
 	os << strongValue.value();
 	return os;
 }
+
+template <std::integral Underlying, class Tag>
+class StrongIntegral : public StrongType<Underlying, Tag>
+{
+	using Base = StrongType<Underlying, Tag>;
+
+public:
+	using Base::Base;
+	using Base::value;
+
+	bool operator==(StrongIntegral other) const
+	{
+		return this->value() == other.value();
+	}
+
+	bool operator<(StrongIntegral other) const
+	{
+		return this->value() < other.value();
+	}
+
+	bool operator>(StrongIntegral other) const
+	{
+		return this->value() > other.value();
+	}
+
+	StrongIntegral& operator+=(const StrongIntegral& other)
+	{
+		this->value += other.value;
+		return *this;
+	}
+
+	StrongIntegral operator+(const StrongIntegral& other) const
+	{
+		auto thisCopy = *this;
+		thisCopy.value += other.value;
+		return thisCopy;
+	}
+};
+
+template <std::integral Underlying, class Tag>
+std::ostream& operator<<(std::ostream& os, StrongIntegral<Underlying, Tag> strongValue)
+{
+	os << strongValue.value();
+	return os;
+}
+
 } // namespace detail
 
-#define DEFINE_STRONG(NAME, UNDERLYING) using NAME = detail::StrongType<UNDERLYING, class Tag_NAME>;
+#define DEFINE_STRONG_TYPE(NAME, UNDERLYING)                                                       \
+	using NAME = detail::StrongType<UNDERLYING, class Tag_NAME>;
+
+#define DEFINE_STRONG_INT(NAME, UNDERLYING)                                                        \
+	using NAME = detail::StrongIntegral<UNDERLYING, class Tag_NAME>;
 
 } // namespace leo

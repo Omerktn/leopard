@@ -34,7 +34,8 @@ void Core::run(const bool& quit)
 	auto& bboFilter = components.emplace_back(std::make_unique<bbo_filter::BboFilter>(
 		bfId, logger::Logger{loggerServer, "BBF", false, logger::LogLevel::DEBUG}));
 
-	mdc->getPublisher(mdc::MarketDataConnector::PublisherKind::BBO).addListener(bfId, bboFilter, 0);
+	mdc->getPublisher(mdc::MarketDataConnector::PublisherKind::BBO)
+		.addListener(bfId, bboFilter, InputIndex{static_cast<uint16_t>(0)});
 
 	while (!quit)
 	{

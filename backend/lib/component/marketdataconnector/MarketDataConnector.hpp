@@ -34,10 +34,10 @@ public:
 										 core::io::Publisher::create<events::SayHi>("SayHi-Out")),
 			   {}}
 	{
-		bboUpdate.bbo.bid = Price{Price::FromDouble{}, 100.1};
-		bboUpdate.bbo.ask = Price{Price::FromDouble{}, 120.2};
-		bboUpdate.bbo.bidQty = Quantity(Quantity::FromDouble{}, 75.25);
-		bboUpdate.bbo.askQty = Quantity(Quantity::FromDouble{}, 133.0);
+		bboUpdate.bbo.bid = Price{Price::UnderlyingType::FromDouble{}, 100.1};
+		bboUpdate.bbo.ask = Price{Price::UnderlyingType::FromDouble{}, 120.2};
+		bboUpdate.bbo.bidQty = Quantity(Quantity::UnderlyingType::FromDouble{}, 75.25);
+		bboUpdate.bbo.askQty = Quantity(Quantity::UnderlyingType::FromDouble{}, 133.0);
 
 		this->evalPreference = EvaluationPreference{.period = Milliseconds{750}};
 	}
@@ -55,9 +55,9 @@ public:
 		}*/
 		lastTimePublished = evalContext.currentTime;
 
-		static constexpr auto INCREMENT = Price{Price::FromDouble{}, 0.5};
-		bboUpdate.bbo.bid += INCREMENT;
-		bboUpdate.bbo.ask += INCREMENT;
+		static constexpr auto INCREMENT = Price{Price::UnderlyingType::FromDouble{}, 0.5};
+		bboUpdate.bbo.bid.value() += INCREMENT.value();
+		bboUpdate.bbo.ask.value() += INCREMENT.value();
 
 		//std::cout << "\nMDC::evaluate() >>> Publishing: " << bboUpdate.bbo << "\n";
 		logger.logInfo("Publishing: {}", bboUpdate.bbo);

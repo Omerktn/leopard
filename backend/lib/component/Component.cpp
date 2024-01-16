@@ -21,17 +21,18 @@ EvaluationPreference Component::getEvaluationPreference() const
 
 void Component::handleAnyInput(InputIndex idx, const core::io::AnyEvent& anyEvent)
 {
-	if (idx >= receiverSchema.slots.size())
+	if (idx.value() >= receiverSchema.slots.size())
 	{
 		throw std::runtime_error(
-			"Input Index " + std::to_string(idx) +
+			"Input Index " + std::to_string(idx.value()) +
 			" is out of input-callbacks size: " + std::to_string(receiverSchema.slots.size()));
 	}
 
-	auto& callback = receiverSchema.slots.at(idx).callback;
+	auto& callback = receiverSchema.slots.at(idx.value()).callback;
 	if (!callback)
 	{
-		throw std::runtime_error("Callback is not set for Input Index " + std::to_string(idx));
+		throw std::runtime_error("Callback is not set for Input Index " +
+								 std::to_string(idx.value()));
 	}
 
 	callback(anyEvent);

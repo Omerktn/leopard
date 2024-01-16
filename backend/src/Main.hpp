@@ -29,7 +29,7 @@ public:
 	{
 		std::cout << "Program is starting...\n";
 
-		const auto coreId = CoreId{1001};
+		const auto coreId = CoreId{1001u};
 		cores.emplace_back(coreId, "Core1", loggerServer);
 
 		runAllCores();
