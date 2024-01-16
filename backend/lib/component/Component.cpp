@@ -1,13 +1,17 @@
 #include "Component.hpp"
 
+#include <core/Core.hpp>
+
 namespace leo
 {
 
-Component::Component(CompId compId,
+Component::Component(core::Core& core,
+					 CompId compId,
 					 logger::Logger&& compLogger,
 					 core::io::PublisherSchema&& publisherSchema,
 					 core::io::ReceiverSchema&& receiverSchema)
-	: id{compId}
+	: core{core}
+	, id{compId}
 	, logger{std::move(compLogger)}
 	, evalPreference{EvaluationPreference::AS_BUSY_AS_POSSIBLE}
 	, publisherSchema{std::move(publisherSchema)}
@@ -50,7 +54,7 @@ const core::io::ReceiverSchema& Component::getReceiverSchema() const
 
 core::io::Publisher& Component::getPublisher(PublisherIndex idx)
 {
-	return publisherSchema.publishers.at(idx);
+	return publisherSchema.publishers.at(idx.value());
 }
 
 logger::Logger& Component::getLogger()

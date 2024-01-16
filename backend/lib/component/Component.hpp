@@ -15,10 +15,16 @@
 namespace leo
 {
 
+namespace core
+{
+class Core;
+}
+
 class Component
 {
 public:
-	Component(CompId compId,
+	Component(core::Core& core,
+			  CompId compId,
 			  logger::Logger&& compLogger,
 			  core::io::PublisherSchema&& publisherSchema,
 			  core::io::ReceiverSchema&& receiverSchema);
@@ -42,6 +48,7 @@ public:
 	Nanoseconds lastEvaluationTime{0};
 
 protected:
+	core::Core& core;
 	const CompId id;
 	logger::Logger logger;
 	EvaluationPreference evalPreference;

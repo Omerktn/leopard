@@ -20,15 +20,16 @@ class MarketDataConnector : public Component
 	static constexpr auto PUBLISH_INTERVAL = Milliseconds{750};
 
 public:
-	enum PublisherKind : PublisherIndex
+	enum PublisherKind : PublisherIndex::UnderlyingType
 	{
 		BBO = 0,
 		SAY_HI = 1
 	};
 
 public:
-	MarketDataConnector(CompId compId, logger::Logger&& compLogger)
-		: Base{compId,
+	MarketDataConnector(core::Core& core, CompId compId, logger::Logger&& compLogger)
+		: Base{core,
+			   compId,
 			   std::move(compLogger),
 			   core::io::PublisherSchema(core::io::Publisher::create<events::BboUpdate>("Bbo-Out"),
 										 core::io::Publisher::create<events::SayHi>("SayHi-Out")),

@@ -118,3 +118,18 @@ std::ostream& operator<<(std::ostream& os, StrongIntegral<Underlying, Tag> stron
 	using NAME = detail::StrongIntegral<UNDERLYING, class Tag_NAME>;
 
 } // namespace leo
+
+namespace std
+{
+
+template <std::integral Underlying, class Tag>
+struct hash<leo::detail::StrongIntegral<Underlying, Tag>>
+{
+	std::size_t
+	operator()(const leo::detail::StrongIntegral<Underlying, Tag>& strongValue) const noexcept
+	{
+		return std::hash(strongValue.value());
+	}
+};
+
+} // namespace std

@@ -17,7 +17,7 @@ namespace leo::core::io
 
 class Publisher
 {
-	using CompPtrRef = std::reference_wrapper<std::unique_ptr<Component>>;
+	using CompPtrRef = std::reference_wrapper<Component>;
 
 	struct Listener
 	{
@@ -49,8 +49,7 @@ public:
 
 	void rename(const std::string_view newName);
 
-	void
-	addListener(CompId compId, std::unique_ptr<Component>& component, InputIndex targetInputIdx);
+	void addListener(CompId compId, Component& component, InputIndex targetInputIdx);
 
 	void removeListener(CompId compId);
 

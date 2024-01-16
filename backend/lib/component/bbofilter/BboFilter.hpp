@@ -19,8 +19,9 @@ class BboFilter : public Component
 	using Base = Component;
 
 public:
-	BboFilter(CompId compId, logger::Logger&& compLogger)
-		: Base{compId,
+	BboFilter(core::Core& core, CompId compId, logger::Logger&& compLogger)
+		: Base{core,
+			   compId,
 			   std::move(compLogger),
 			   {},
 			   core::io::ReceiverSchema(
@@ -34,24 +35,22 @@ public:
 					   .name = "SayHi-In",
 					   .eventName = events::BboUpdate::NAME,
 					   .callback = core::io::delegateHandler<&BboFilter::handleSayHi>(*this)})}
-	{}
+	{
+		this->evalPreference.period = EvaluationPreference::NEVER;
+	}
 
 	~BboFilter()
 	{
 		std::cout << "BboFilter::~BboFilter()" << std::endl;
 	}
 
-	virtual void evaluate(const EvaluationContext&) override
-	{
-		//std::cout << "BboFilter::evaluate() Evaluating BboFilter!\n";
-	}
+	virtual void evaluate(const EvaluationContext&) override {}
 
-public:
 private:
 	void handleBboUpdate(const core::io::AnyEvent& anyEvent)
 	{
 		const auto& bboUpdate = std::get<events::BboUpdate>(anyEvent);
-		//std::cout << "Received event: " << bboUpdate.bbo << "\n";
+		Base::logger.logInfo("Received event: {}", bboUpdate.bbo);
 	}
 
 	void handleSayHi(const core::io::AnyEvent& anyEvent)

@@ -21,9 +21,7 @@ void Publisher::rename(const std::string_view newName)
 	name = newName;
 }
 
-void Publisher::addListener(CompId compId,
-							std::unique_ptr<Component>& component,
-							InputIndex targetInputIdx)
+void Publisher::addListener(CompId compId, Component& component, InputIndex targetInputIdx)
 {
 	listeners.emplace_back(compId, std::ref(component), targetInputIdx);
 }
@@ -47,7 +45,7 @@ void Publisher::publishImpl(const AnyEvent& eventVariant)
 {
 	for (auto& listener : listeners)
 	{
-		listener.component.get().get()->handleAnyInput(listener.targetIdx, eventVariant);
+		listener.component.get().handleAnyInput(listener.targetIdx, eventVariant);
 	}
 }
 
