@@ -30,7 +30,7 @@ public:
 	explicit Core(CoreId coreId, std::string_view coreName, logger::Server& loggerServer);
 	~Core() = default;
 
-	void run(const bool& quit);
+	void run(const std::atomic<bool>& quit);
 
 	Component* getComponent(CompId compId);
 

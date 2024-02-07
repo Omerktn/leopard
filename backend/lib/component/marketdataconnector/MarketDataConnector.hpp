@@ -1,5 +1,7 @@
 #pragma once
 
+#include <component/marketdataconnector/Config.hpp>
+
 #include <common/Types.hpp>
 #include <component/Component.hpp>
 #include <core/events/BboUpdate.hpp>
@@ -31,6 +33,7 @@ public:
 		: Base{core,
 			   compId,
 			   std::move(compLogger),
+			   config.getFieldsDefinition(),
 			   core::io::PublisherSchema(core::io::Publisher::create<events::BboUpdate>("Bbo-Out"),
 										 core::io::Publisher::create<events::SayHi>("SayHi-Out")),
 			   {}}
@@ -46,6 +49,20 @@ public:
 	~MarketDataConnector()
 	{
 		std::cout << "MDC::~MarketDataConnector()" << std::endl;
+	}
+
+	virtual bool applyConfig(ConfigFieldId fieldId,
+							 const component::config::FieldValue& valueVar) override
+	{
+		Config newConfig{config};
+		newConfig.setField(fieldId, valueVar);
+
+		const auto success = !Config::validate2(newConfig).has_value();
+		if (success)
+		{
+			config = newConfig;
+		}
+		return success;
 	}
 
 	virtual void evaluate(const EvaluationContext& evalContext) override
@@ -69,6 +86,7 @@ public:
 	}
 
 private:
+	Config config;
 	events::BboUpdate bboUpdate{};
 	Nanoseconds lastTimePublished{};
 };

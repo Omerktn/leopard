@@ -63,14 +63,14 @@ private:
 
 	void runMainLoop()
 	{
-		while (!quit)
+		while (!quit.load(std::memory_order_relaxed))
 		{
 			localLogger.logInfo("Merhaba {}, ik ben {} jaar oud.", "Efe", 32);
 			localLogger.logEvent(log::ArbitraryEvent2{"Ben de veli hehe", 19});
 			localLogger.flush();
 			FLUSH_FREE_LOGGER();
 
-			std::this_thread::sleep_for(std::chrono::milliseconds(250));
+			std::this_thread::sleep_for(std::chrono::milliseconds(10000));
 		}
 	}
 
@@ -78,7 +78,7 @@ private:
 	[[maybe_unused]] int argc;
 	[[maybe_unused]] char** argv;
 
-	bool quit = false;
+	std::atomic<bool> quit = false;
 	logger::Server loggerServer{};
 	std::list<core::Core> cores{};
 

@@ -24,7 +24,7 @@ public:
 public:
 	template <class... Slots>
 	ReceiverSchema(Slots&&... slotElements)
-		: slots{slotElements...}
+		: slots{std::move(slotElements)...}
 	{
 		static_assert(std::conjunction_v<std::is_same<Slot, Slots>...>);
 	}

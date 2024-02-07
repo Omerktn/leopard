@@ -8,12 +8,14 @@ namespace leo
 Component::Component(core::Core& core,
 					 CompId compId,
 					 logger::Logger&& compLogger,
+					 //component::config::FieldDefinitions&& configFields,
 					 core::io::PublisherSchema&& publisherSchema,
 					 core::io::ReceiverSchema&& receiverSchema)
 	: core{core}
 	, id{compId}
 	, logger{std::move(compLogger)}
 	, evalPreference{EvaluationPreference::AS_BUSY_AS_POSSIBLE}
+	//, configDef{std::move(configFields)}
 	, publisherSchema{std::move(publisherSchema)}
 	, receiverSchema{std::move(receiverSchema)}
 {}

@@ -24,6 +24,7 @@ public:
 			   compId,
 			   std::move(compLogger),
 			   {},
+			   {},
 			   core::io::ReceiverSchema(
 				   core::io::ReceiverSchema::Slot{
 					   .eventTypeInfo = typeid(events::BboUpdate),

@@ -18,6 +18,7 @@ DEFINE_STRONG_INT(InputIndex, uint16_t);
 
 DEFINE_STRONG_INT(LoggerUserId, int16_t);
 DEFINE_STRONG_INT(EventId, uint16_t);
+DEFINE_STRONG_INT(ConfigFieldId, uint16_t);
 
 DEFINE_STRONG_TYPE(Price, FixedDecimal<12>);
 DEFINE_STRONG_TYPE(Quantity, FixedDecimal<12>);

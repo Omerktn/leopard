@@ -4,6 +4,8 @@ add_subdirectory(marketdataconnector)
 add_library(libcomponent STATIC
     Component.cpp
     Component.hpp
+    Configuration.cpp
+    Configuration.hpp
     Evaluation.hpp
 )
 

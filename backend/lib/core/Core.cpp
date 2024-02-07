@@ -32,7 +32,7 @@ Core::Core(CoreId coreId, std::string_view coreName, logger::Server& loggerServe
 	components.reserve(64);
 }
 
-void Core::run(const bool& quit)
+void Core::run(const std::atomic<bool>& quit)
 {
 	std::cout << "Core " << id << " is running." << std::endl;
 
@@ -53,7 +53,7 @@ void Core::run(const bool& quit)
 	mdc.getPublisher(mdc::MarketDataConnector::PublisherKind::BBO)
 		.addListener(bf2Id, bboFilter2, InputIndex{static_cast<uint16_t>(0)});
 
-	while (!quit)
+	while (!quit.load(std::memory_order_relaxed))
 	{
 		const auto now = Clock::now();
 		const auto evalContext = EvaluationContext{.currentTime = now};

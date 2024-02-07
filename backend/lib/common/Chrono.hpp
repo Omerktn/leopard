@@ -19,6 +19,8 @@ using Milliseconds = std::chrono::duration<Timestamp32, std::milli>;
 using Microseconds = std::chrono::duration<Timestamp64, std::micro>;
 using Nanoseconds = std::chrono::duration<Timestamp64, std::nano>;
 
+using MillisecondsFloat = std::chrono::duration<float, std::milli>;
+
 class Clock
 {
 public:
